@@ -1,0 +1,6 @@
+<root>
+    <id>wotstat.positions</id>
+    <version>{{VERSION}}</version>
+    <name>wotstat.positions</name>
+    <description>Dynamic minimap positions by WotStat</description>
+</root>

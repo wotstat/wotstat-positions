@@ -1,0 +1,1 @@
+from .wotstat_positions import *
