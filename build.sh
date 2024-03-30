@@ -18,14 +18,14 @@ cp -r ./res ./build
 # configPath="./build/res/scripts/client/gui/mods/wot_stat/common/config.py"
 # echo -e "version = '$v'\n$(cat $configPath)" > $configPath
 
-# utilsPath="./build/res/scripts/client/gui/mods/wot_stat/utils.py"
-# if [ "$d" = true ]; then
-#     echo "Building DEBUG version."
-#     echo -e "DEBUG_MODE = True\n$(cat $utilsPath)" > $utilsPath
-# else
-#     echo "Building RELEASE version."
-#     echo -e "DEBUG_MODE = False\n$(cat $utilsPath)" > $utilsPath
-# fi
+utilsPath="./build/res/scripts/client/gui/mods/wotstat_positions/__init__.py"
+if [ "$d" = true ]; then
+    echo "Building DEBUG version."
+    echo -e "DEBUG_MODE = True\n$(cat $utilsPath)" > $utilsPath
+else
+    echo "Building RELEASE version."
+    echo -e "DEBUG_MODE = False\n$(cat $utilsPath)" > $utilsPath
+fi
 
 python2 -m compileall ./build
 
@@ -41,7 +41,7 @@ rm -rf $folder
 
 zip -dvr -0 -X $folder res -i "*.pyc"
 zip -vr -0 -X $folder meta.xml
-zip -vr -0 -X $folder res -i "*.png"
+# zip -vr -0 -X $folder res -i "*.png"
 
 cd ../
 cp ./build/$folder $folder

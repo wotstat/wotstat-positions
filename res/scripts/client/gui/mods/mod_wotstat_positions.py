@@ -1,1 +1,3 @@
-from .wotstat_positions import *
+from .wotstat_positions import WotstatPositions
+
+wotstatPositions = WotstatPositions()
