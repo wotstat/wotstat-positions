@@ -9,24 +9,26 @@ def __currentExeptionToString(tags=None, frame=1):
   etype, value, tb = sys.exc_info()
   msg += ''.join(format_exception(etype, value, tb, None))
   with _g_logLock:
-    line = ''
-    line += '[EXCEPTION]' + _addTagsToMsg(tags, msg)
+    line = '[EXCEPTION]' + _addTagsToMsg(tags, msg)
     extMsg = excepthook.extendedTracebackAsString(_src_file_trim_to, None, None, etype, value, tb)
     if extMsg:
       line += '[EXCEPTION]' + _addTagsToMsg(tags, extMsg)
   return line
 
-def withExceptionHandling(logger=None):
-  def wrapper(func):
-    try:
-      func()
-    except:
-      LOG_CURRENT_EXCEPTION()
-      if logger:
-        logger.exception(__currentExeptionToString())
 
-  return wrapper
-  
+def withExceptionHandling(logger):
+  def inner_decorator(f):
+    def wrapped(*args, **kwargs):
+      try:
+        return f(*args, **kwargs)
+      except:
+        if logger:
+          logger.critical(__currentExeptionToString())
+        else:
+          LOG_CURRENT_EXCEPTION()
+    return wrapped
+  return inner_decorator
+
 class SendExceptionEvent(Event):
   def __init__(self, logger=None):
     super(SendExceptionEvent, self).__init__(None)
@@ -37,6 +39,7 @@ class SendExceptionEvent(Event):
       try:
         delegate(*args, **kwargs)
       except:
-        LOG_CURRENT_EXCEPTION()
         if self.logger:
-          self.logger.exception(__currentExeptionToString())
+          self.logger.critical(__currentExeptionToString())
+        else:
+          LOG_CURRENT_EXCEPTION()

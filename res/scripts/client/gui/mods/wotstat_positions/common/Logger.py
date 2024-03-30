@@ -1,27 +1,52 @@
+from Singleton import Singleton
 
 LEVELS_ORDER = {
   "DEBUG" : 0, 
   "INFO" : 1, 
   "WARN" : 2, 
   "ERROR" : 3, 
-  "EXCEPTION" : 4
+  "CRITICAL" : 4
 }
 
 def getLevelOrder(level):
   return LEVELS_ORDER[level] if level in LEVELS_ORDER else -1
 
-class Logger(object):
-  def __init__(self, prefix, minLevel = "INFO", onPrint = None):
+class SimpleLoggerBackend:
+  def __init__(self, prefix, minLevel="INFO"):
     self.prefix = prefix
     self.minLevelOrder = getLevelOrder(minLevel)
-    self.onPrint = onPrint
 
   def printlog(self, level, log):
     if getLevelOrder(level) >= self.minLevelOrder:
       print("%s[%s]: %s" % (self.prefix, level, str(log)))
 
-    if self.onPrint:
-      self.onPrint(level, str(log))
+class Logger(Singleton):
+
+  @staticmethod
+  def instance():
+      return Logger()
+  
+  def _singleton_init(self):
+    self.isSetup = False
+    self.backends = []
+    self.preSetupQueue = []
+
+  def setup(self, backends):
+    self.backends = backends
+    self.isSetup = True
+
+    for log in self.preSetupQueue:
+      self.printlog(log[0], log[1])
+    
+    self.preSetupQueue = []
+
+  def printlog(self, level, log):
+    if not self.isSetup:
+      self.preSetupQueue.append((level, log))
+      return
+    
+    for backend in self.backends:
+      backend.printlog(level, log)
 
   def debug(self, log):
     self.printlog("DEBUG", log)
@@ -35,5 +60,5 @@ class Logger(object):
   def error(self, log):
     self.printlog("ERROR", log)
 
-  def exception(self, log):
-    self.printlog("EXCEPTION", log)
+  def critical(self, log):
+    self.printlog("CRITICAL", log)
