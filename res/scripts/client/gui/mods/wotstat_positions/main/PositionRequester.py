@@ -1,19 +1,17 @@
 import BigWorld
 from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
-from urllib import urlencode
 
 from ..common.Logger import Logger
 from ..common.ExeptionHandling import withExceptionHandling
 from .utils import short_tank_type, get_tank_type, get_tank_role
 from .WotHookEvents import wotHookEvents
-from . import IPositionDrawer, IPositionRequester
+from . import IPositionDrawer, IPositionRequester  # noqa: F401
 
 logger = Logger.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
 
-def getPlayerVehicle():
-  player = BigWorld.player()
+def getPlayerVehicle(player=BigWorld.player()):
 
   if hasattr(player, 'vehicle') and player.vehicle is not None:
     return player.vehicle
@@ -27,11 +25,14 @@ def getPlayerVehicle():
 
 class PositionRequester(IPositionRequester):
 
-  def __init__(self, serverUrl, drawer):
-    # type: (str, IPositionDrawer) -> None
+  def __init__(self, serverUrl, requestPeriod, drawer):
+    # type: (str, int, IPositionDrawer) -> None
 
-    self.drawer = drawer
-    self.serverUrl = serverUrl
+    self.__drawer = drawer
+    self.__serverUrl = serverUrl
+    self.__requestPeriod = requestPeriod
+    self.__lastRequestTime = 0
+
     self.__callbackID = None
     self.__isEnable = False
 
@@ -39,6 +40,7 @@ class PositionRequester(IPositionRequester):
       
   def start(self):
     self.__isEnable = True
+    self.__lastRequestTime = 0
 
     player = BigWorld.player()
     if hasattr(player, 'arena'):
@@ -62,7 +64,7 @@ class PositionRequester(IPositionRequester):
       logger.debug('Request loop is not enabled')
       return
     
-    self.__callbackID = BigWorld.callback(5, self.__requestLoop)
+    self.__callbackID = BigWorld.callback(1, self.__requestLoop)
 
     player = BigWorld.player()
 
@@ -70,10 +72,15 @@ class PositionRequester(IPositionRequester):
       logger.debug('Player is not on arena')
       return
     
-    vehicle = getPlayerVehicle()
+    vehicle = getPlayerVehicle(player)
     if vehicle is None:
       logger.debug('Player vehicle is None')
       return
+    
+    time = BigWorld.time()
+    if time - self.__lastRequestTime < self.__requestPeriod:
+      return
+    self.__lastRequestTime = time
 
     params = {
       'region': AUTH_REALM,
@@ -86,15 +93,13 @@ class PositionRequester(IPositionRequester):
       'type': short_tank_type(get_tank_type(player.vehicleTypeDescriptor.type.tags)),
       'role': get_tank_role(player.vehicleTypeDescriptor.role),
       'health': float(vehicle.health) / vehicle.maxHealth,
-      'position': '(%s;%s)' % (player.position[0], player.position[2]),
-      'time': int(self.__battle_time() / 1000),
+      'position': '(%s;%s)' % (int(player.position[0]), int(player.position[2])),
+      'time': int(self.__battle_time()),
       'allyfrags': 0,
       'enemyfrags': 0,
     }
 
-    logger.debug('Requesting positions: \n%s' % params)
-
-    targetUrl = self.serverUrl + '/positions?' + '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
+    targetUrl = self.__serverUrl + '/positions?' + '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
 
     BigWorld.fetchURL(targetUrl, self.__onResponse)
 
@@ -102,7 +107,7 @@ class PositionRequester(IPositionRequester):
   def __onResponse(self, data):
     logger.debug('Response: %s' % data.body)
 
-    self.drawer.clear()
+    self.__drawer.clear()
 
   def __onArenaPeriodChange(self, obj, period, periodEndTime, periodLength, *a, **k):
     if period is ARENA_PERIOD.BATTLE:

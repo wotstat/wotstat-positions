@@ -1,8 +1,4 @@
-import BigWorld
-
-from .WotHookEvents import wotHookEvents
 from ..common.Logger import Logger
-
 from . import IPositionDrawer
 
 logger = Logger.instance()

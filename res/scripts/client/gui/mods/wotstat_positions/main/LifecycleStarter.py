@@ -1,6 +1,6 @@
 from .WotHookEvents import wotHookEvents
 from ..common.Logger import Logger
-from . import IPositionRequester
+from . import IPositionRequester  # noqa: F401
 
 logger = Logger.instance()
 

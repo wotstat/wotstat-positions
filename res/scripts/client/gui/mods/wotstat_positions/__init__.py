@@ -30,7 +30,9 @@ class WotstatPositions(object):
     logger.debug("Logger setup done")
 
     drawer = MarkerDrawer()
-    requseter = PositionRequester(self.config.get('serverURL'), drawer)
+    requseter = PositionRequester(serverUrl=self.config.get('serverURL'),
+                                  requestPeriod=5,
+                                  drawer=drawer)
     self.markerDrawer = LifecycleStarter(requseter)
 
     logger.debug("MarkerDrawer created")
