@@ -11,6 +11,7 @@ app.get('/api/v1/positions', (req, res) => {
     mode,
     gameplay,
     arena,
+    team,
     tank,
     level,
     type,
@@ -22,7 +23,7 @@ app.get('/api/v1/positions', (req, res) => {
     enemyfrags
   } = req.query
 
-  console.log({ region, mode, gameplay, arena, tank, level, type, role, health, position, time, allyfrags, enemyfrags })
+  console.log({ region, mode, gameplay, arena, team, tank, level, type, role, health, position, time, allyfrags, enemyfrags })
 
   return res.json({
     status: "ok",

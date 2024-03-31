@@ -27,6 +27,7 @@ class WotHookEvents:
     self.Avatar_onBecomePlayer = SendExceptionEvent()
     self.Avatar_onBecomeNonPlayer = SendExceptionEvent()
     self.Vehicle_onEnterWorld = SendExceptionEvent()
+    self.PlayerAvatar_onArenaPeriodChange = SendExceptionEvent()
    
   def __onConnected(self):
     self.onConnected()
@@ -54,3 +55,7 @@ def onBecomeNonPlayer(self, *a, **k):
 @g_overrideLib.registerEvent(Vehicle, 'onEnterWorld')
 def onEnterWorld(self, *a, **k):
   wotHookEvents.Vehicle_onEnterWorld(self, *a, **k)
+
+@g_overrideLib.registerEvent(PlayerAvatar, '_PlayerAvatar__onArenaPeriodChange')
+def onArenaPeriodChange(self, *a, **k):
+  wotHookEvents.PlayerAvatar_onArenaPeriodChange(self, *a, **k)

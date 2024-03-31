@@ -1,6 +1,8 @@
 from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
+from .main.LifecycleStarter import LifecycleStarter
+from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
@@ -27,6 +29,8 @@ class WotstatPositions(object):
 
     logger.debug("Logger setup done")
 
-    self.markerDrawer = MarkerDrawer()
+    drawer = MarkerDrawer()
+    requseter = PositionRequester(self.config.get('serverURL'), drawer)
+    self.markerDrawer = LifecycleStarter(requseter)
 
     logger.debug("MarkerDrawer created")

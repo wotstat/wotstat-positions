@@ -15,6 +15,7 @@
 | mode       | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                |
 | gameplay   | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                    |
 | arena      | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big |
+| team       | Команда игрока `player.team`                              | 0                      |
 | tank       | Танк тег                                                  | uk:GB100_Manticore     |
 | level      | Уровень танка                                             | 10                     |
 | type       | Тип танка                                                 | LT                     |

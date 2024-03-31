@@ -3,16 +3,14 @@ import BigWorld
 from .WotHookEvents import wotHookEvents
 from ..common.Logger import Logger
 
+from . import IPositionDrawer
+
 logger = Logger.instance()
 
-class MarkerDrawer(object):
+class MarkerDrawer(IPositionDrawer):
 
   def __init__(self):
-    wotHookEvents.Avatar_onBecomePlayer += self.__onBecomePlayer
-    wotHookEvents.Avatar_onBecomeNonPlayer += self.__onBecomeNonPlayer
-      
-  def __onBecomePlayer(self, *a, **k):
-    logger.debug("On become player")
+    pass
 
-  def __onBecomeNonPlayer(self, *a, **k):
-    logger.debug("On become non player")
+  def clear(self):
+    logger.debug("Clearing markers")

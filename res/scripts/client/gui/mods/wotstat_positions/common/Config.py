@@ -11,6 +11,7 @@ class Config:
   config = {}
   defaultParams = {
     'lokiURL': 'https://loki.wotstat.info/loki/api/v1/push',
+    'serverURL': 'https://positions.wotstat.info/api/v1',
   }
 
   def __init__(self, configPath, defaultParams=None):

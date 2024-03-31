@@ -4,6 +4,8 @@ import excepthook
 from debug_utils import _addTagsToMsg, _makeMsgHeader, LOG_CURRENT_EXCEPTION, _src_file_trim_to, _g_logLock
 from Event import Event
 
+from .Logger import Logger
+
 def __currentExeptionToString(tags=None, frame=1):
   msg = _makeMsgHeader(sys._getframe(frame)) + '\n'
   etype, value, tb = sys.exc_info()
@@ -16,7 +18,7 @@ def __currentExeptionToString(tags=None, frame=1):
   return line
 
 
-def withExceptionHandling(logger):
+def withExceptionHandling(logger=Logger.instance()):
   def inner_decorator(f):
     def wrapped(*args, **kwargs):
       try:
@@ -30,7 +32,7 @@ def withExceptionHandling(logger):
   return inner_decorator
 
 class SendExceptionEvent(Event):
-  def __init__(self, logger=None):
+  def __init__(self, logger=Logger.instance()):
     super(SendExceptionEvent, self).__init__(None)
     self.logger = logger
 
