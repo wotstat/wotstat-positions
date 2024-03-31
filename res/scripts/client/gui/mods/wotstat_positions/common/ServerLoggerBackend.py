@@ -74,7 +74,7 @@ class ServerLoggerBackend():
       postData = json.dumps({"streams": streams}, ensure_ascii=False)
 
       def sendCallback(res):
-        if res is not None and res.staus != 200:
+        if res is not None and res.status != 200:
           print('%slogger sending error' % self.__prefix)
           print(res.body)
 

@@ -1,6 +1,7 @@
 from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
+from .main.MarkerDrawer import MarkerDrawer
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
 CONFIG_PATH = './mods/configs/wotstat_positions/config.cfg'
@@ -25,3 +26,7 @@ class WotstatPositions(object):
     ])
 
     logger.debug("Logger setup done")
+
+    self.markerDrawer = MarkerDrawer()
+
+    logger.debug("MarkerDrawer created")
