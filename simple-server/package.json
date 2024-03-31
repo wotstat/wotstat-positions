@@ -1,0 +1,13 @@
+{
+  "name": "simple-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "serve": "node index.js"
+  },
+  "author": "Soprachev Andrei",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
