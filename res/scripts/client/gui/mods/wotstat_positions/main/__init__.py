@@ -1,4 +1,4 @@
-
+from typing import List, Tuple
 
 class IPositionRequester(object):
   def start(self):
@@ -8,7 +8,8 @@ class IPositionRequester(object):
     pass
 
 class IPositionDrawer(object):
-  def drawPoints(self, efficency, points):
+  def drawPoints(self, points):
+    # type: (List[PositionPoint]) -> None
     pass
 
   def drawPolygons(self, polygons):
@@ -19,3 +20,12 @@ class IPositionDrawer(object):
 
   def clear(self):
     pass
+
+  def reset(self):
+    pass
+
+class PositionPoint(object):
+  def __init__(self, efficiency, position):
+    # type: (float, Tuple[float, float]) -> None
+    self.efficiency = efficiency
+    self.position = position

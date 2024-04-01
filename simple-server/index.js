@@ -62,7 +62,15 @@ app.get('/api/v1/positions', (req, res) => {
         {
           efficiency: 0.5,
           position: [0, -350]
-        }
+        },
+        {
+          efficiency: 1,
+          position: [200, -350]
+        },
+        ...Array.from({ length: 10 }, (_, i) => ({
+          efficiency: 0.5,
+          position: [Math.random() * 900 - 450, Math.random() * 900 - 450]
+        }))
       ],
       idealPoints: [
         {

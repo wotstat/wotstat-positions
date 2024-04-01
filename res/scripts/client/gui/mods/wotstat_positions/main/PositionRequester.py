@@ -1,3 +1,5 @@
+import json
+
 import BigWorld
 from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
@@ -6,7 +8,7 @@ from ..common.Logger import Logger
 from ..common.ExeptionHandling import withExceptionHandling
 from .utils import short_tank_type, get_tank_type, get_tank_role
 from .WotHookEvents import wotHookEvents
-from . import IPositionDrawer, IPositionRequester  # noqa: F401
+from . import IPositionDrawer, IPositionRequester, PositionPoint  # noqa: F401
 
 logger = Logger.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
@@ -55,6 +57,7 @@ class PositionRequester(IPositionRequester):
 
   def stop(self):
     self.__isEnable = False
+    self.__drawer.reset()
     if self.__callbackID is not None:
       BigWorld.cancelCallback(self.__callbackID)
 
@@ -105,10 +108,27 @@ class PositionRequester(IPositionRequester):
 
   @withExceptionHandling()
   def __onResponse(self, data):
-    logger.debug('Response: %s' % data.body)
-
+    if data.responseCode != 200:
+      logger.error('Response status is not 200: %s' % data.status)
+      return
+    
+    body = data.body
+    if not body:
+      logger.error('Response body is empty')
+      return
+    
+    parsed = None
+    try:
+      parsed = json.loads(body)
+    except ValueError:
+      logger.error('Response body is not a valid JSON: %s' % body)
+      return
+    
+    response = PositionsResponse(parsed)
+    
     self.__drawer.clear()
-
+    self.__drawer.drawPoints(response.getPoints())
+    
   def __onArenaPeriodChange(self, obj, period, periodEndTime, periodLength, *a, **k):
     if period is ARENA_PERIOD.BATTLE:
       self.__startBattleTime = periodEndTime - periodLength
@@ -126,3 +146,35 @@ class PositionRequester(IPositionRequester):
       ARENA_PERIOD.BATTLE: BigWorld.serverTime() - self.__startBattleTime,
       ARENA_PERIOD.AFTERBATTLE: BigWorld.serverTime() - self.__startBattleTime
     }.get(player.arena.period, -10002)
+
+class PositionsResponse(object):
+  def __init__(self, data):
+    self.__data = data
+
+  def getPoints(self):
+    if 'positions' not in self.__data:
+      return []
+    
+    positions = self.__data['positions']
+
+    if 'points' not in positions:
+      return []
+    
+    points = positions['points']
+
+    if not isinstance(points, list):
+      return []
+    
+    parsed = []
+
+    for point in points:
+      if 'efficiency' not in point or 'position' not in point:
+        continue
+      
+      pos = point['position']
+      x = float(pos[0])
+      y = float(pos[1])
+
+      parsed.append(PositionPoint(point['efficiency'], (x, y)))
+
+    return parsed
