@@ -1,6 +1,6 @@
 import json
 
-import BigWorld
+import BigWorld # type: ignore
 from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
 
