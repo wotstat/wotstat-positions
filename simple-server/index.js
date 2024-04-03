@@ -46,12 +46,12 @@ app.get('/api/v1/positions', (req, res) => {
     positions: {
       polygons: [
         {
-          efficiency: 0.5,
-          area: [[0, 0], [0, 300], [300, 300], [300, 0]]
+          efficiency: 0.3,
+          area: [[0, 0], [0, 300], [200, 300], [300, 0]]
         },
         {
           efficiency: 0.5,
-          area: [[-450, -450], [-450, -100], [-400, -100], [-400, -450]]
+          area: [[-350, -350], [-350, -100], [-300, -100], [-300, -350]]
         }
       ],
       points: [
@@ -67,10 +67,10 @@ app.get('/api/v1/positions', (req, res) => {
           efficiency: 1,
           position: [200, -350]
         },
-        ...Array.from({ length: 10 }, (_, i) => ({
-          efficiency: 0.5,
-          position: [Math.random() * 900 - 450, Math.random() * 900 - 450]
-        }))
+        // ...Array.from({ length: 1000 }, (_, i) => ({
+        //   efficiency: 1,
+        //   position: [Math.random() * 900 - 450, Math.random() * 900 - 450]
+        // }))
       ],
       idealPoints: [
         {
@@ -80,7 +80,15 @@ app.get('/api/v1/positions', (req, res) => {
         {
           efficiency: 0.7,
           position: [200, -200]
-        }
+        },
+        // {
+        //   efficiency: 0.7,
+        //   position: [200, 300]
+        // },
+...Array.from({ length: 20 }, (_, i) => ({
+          efficiency: 1,
+          position: [Math.random() * 900 - 450, Math.random() * 900 - 450]
+        }))
       ]
     }
   })

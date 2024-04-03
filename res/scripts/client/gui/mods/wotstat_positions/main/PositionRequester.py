@@ -8,7 +8,7 @@ from ..common.Logger import Logger
 from ..common.ExeptionHandling import withExceptionHandling
 from .utils import short_tank_type, get_tank_type, get_tank_role
 from .WotHookEvents import wotHookEvents
-from . import IPositionDrawer, IPositionRequester, PositionPoint  # noqa: F401
+from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  # noqa: F401
 
 logger = Logger.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
@@ -127,7 +127,9 @@ class PositionRequester(IPositionRequester):
     response = PositionsResponse(parsed)
     
     self.__drawer.clear()
+    self.__drawer.drawPolygons(response.getPolygons())
     self.__drawer.drawPoints(response.getPoints())
+    self.__drawer.drawIdealPoints(response.getIdealPoints())
     
   def __onArenaPeriodChange(self, obj, period, periodEndTime, periodLength, *a, **k):
     if period is ARENA_PERIOD.BATTLE:
@@ -161,20 +163,77 @@ class PositionsResponse(object):
       return []
     
     points = positions['points']
+    return PositionsResponse.__parsePointsList(points)
+  
+  def getIdealPoints(self):
+    if 'positions' not in self.__data:
+      return []
+    
+    positions = self.__data['positions']
 
+    if 'idealPoints' not in positions:
+      return []
+    
+    points = positions['idealPoints']
+    return PositionsResponse.__parsePointsList(points)
+  
+  def getPolygons(self):
+    if 'positions' not in self.__data:
+      return []
+    
+    positions = self.__data['positions']
+
+    if 'polygons' not in positions:
+      return []
+    
+    polygons = positions['polygons']
+    if not isinstance(polygons, list):
+      return []
+    
+    parsed = []
+
+    for polygon in polygons:
+      if 'efficiency' not in polygon or 'area' not in polygon:
+        continue
+
+      area = polygon['area']
+      if not isinstance(area, list):
+        continue
+
+      parsedArea = []
+      for point in area:
+        if not isinstance(point, list) or len(point) != 2:
+          continue
+
+        x = float(point[0])
+        y = float(point[1])
+        parsedArea.append((x, y))
+
+      parsed.append(PositionArea(polygon['efficiency'], parsedArea))
+      
+    return parsed
+
+  @staticmethod
+  def __parsePointsList(points):
     if not isinstance(points, list):
       return []
     
     parsed = []
 
     for point in points:
-      if 'efficiency' not in point or 'position' not in point:
-        continue
-      
-      pos = point['position']
-      x = float(pos[0])
-      y = float(pos[1])
-
-      parsed.append(PositionPoint(point['efficiency'], (x, y)))
+      parsedPoint = PositionsResponse.__pasrePoint(point)
+      if parsedPoint is not None:
+        parsed.append(parsedPoint)
 
     return parsed
+  
+  @staticmethod
+  def __pasrePoint(point):
+    if 'efficiency' not in point or 'position' not in point:
+      return None
+    
+    pos = point['position']
+    x = float(pos[0])
+    y = float(pos[1])
+
+    return PositionPoint(point['efficiency'], (x, y))
