@@ -12,6 +12,7 @@ from Math import Vector2, Vector3, Vector4, createTranslationMatrix
 from gui.battle_control import minimap_utils
 
 from ..common.Logger import Logger
+from ..common.HotKeys import HotKeys
 from . import IPositionDrawer, PositionPoint, PositionArea # noqa: F401
 
 logger = Logger.instance()
@@ -55,6 +56,10 @@ class MarkerDrawer(IPositionDrawer):
   def __init__(self):
     self.__minimap = None
     self.__markerManager = None
+    HotKeys.instance().onCommand += self.__onCommand
+
+  def __onCommand(self, command):
+    logger.info('Command received: %s' % command)
 
   def drawPoints(self, points):
     # type: (List[PositionPoint]) -> None
@@ -85,7 +90,6 @@ class MarkerDrawer(IPositionDrawer):
           if polygon.isPointInPolygon((x, y)):
             self.__createPointMarker((x, y + offset), green=True, scale=polygon.efficiency)
             break
-
 
   def drawIdealPoints(self, points):
     # type: (List[PositionPoint]) -> None

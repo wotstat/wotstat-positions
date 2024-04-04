@@ -109,7 +109,7 @@ class PositionRequester(IPositionRequester):
   @withExceptionHandling()
   def __onResponse(self, data):
     if data.responseCode != 200:
-      logger.error('Response status is not 200: %s' % data.status)
+      logger.error('Response status is not 200: %s' % data.responseCode)
       return
     
     body = data.body

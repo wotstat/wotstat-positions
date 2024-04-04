@@ -82,7 +82,7 @@ class ModUpdator(object):
     @withExceptionHandling()
     def onResponse(data):
       if data.responseCode != 200:
-        logger.error('GH Update. Response status is not 200: %s' % data.status)
+        logger.error('GH Update. Response status is not 200: %s' % data.responseCode)
         return onCompleateInvoke(UpdateStatus.NOT_OK_RESPONSE)
       
       parsed = json.loads(data.body)

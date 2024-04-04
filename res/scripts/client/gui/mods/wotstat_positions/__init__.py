@@ -2,12 +2,14 @@ from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
 from .common.ModUpdator import ModUpdator
+from .common.Settings import Settings
+from .common.HotKeys import HotKeys
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
-CONFIG_PATH = './mods/configs/wotstat_positions/config.cfg'
+CONFIG_PATH = './mods/configs/wotstat.positions/config.cfg'
 
 class WotstatPositions(object):
   def __init__(self):
@@ -30,13 +32,14 @@ class WotstatPositions(object):
                           minLevel="INFO")
     ])
 
-    logger.debug("Logger setup done")
-
     updator = ModUpdator(modName="wotstat.positions",
                          currentVersion=version,
                          ghUrl=self.config.get('ghURL'))
-    
     updator.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
+
+    settings = Settings.instance()
+    settings.onSettingsChanged += self.onSettingsChanged
+    settings.setup("wotstat_positions")
 
     drawer = MarkerDrawer()
     requseter = PositionRequester(serverUrl=self.config.get('serverURL'),
@@ -45,3 +48,11 @@ class WotstatPositions(object):
     self.markerDrawer = LifecycleStarter(requseter)
 
     logger.debug("MarkerDrawer created")
+
+  def onSettingsChanged(self, settings):
+    hotkeys = HotKeys.instance()
+    settings = Settings.instance()
+
+    hotkeys.updateCommandHotkey("toggleArea", settings.get("areaChangeKey"))
+    hotkeys.updateCommandHotkey("toggleMarkers", settings.get("markersChangeKey"))
+    hotkeys.updateCommandHotkey("toggleIdealMarker", settings.get("idealChangeKey"))
