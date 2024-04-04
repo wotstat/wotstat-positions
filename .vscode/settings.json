@@ -1,0 +1,15 @@
+{
+  "python.autoComplete.extraPaths": [
+    "wot-src/sources/res/scripts/client",
+    "wot-src/sources/res/scripts/common",
+    "modssettingsapi/sources/scripts/client",
+    "BigWorldPlaceholder",
+  ],
+  "python.analysis.extraPaths": [
+    "wot-src/sources/res/scripts/client",
+    "wot-src/sources/res/scripts/common",
+    "modssettingsapi/sources/scripts/client",
+    "BigWorldPlaceholder",
+  ],
+  "python.analysis.userFileIndexingLimit": 20000,
+}

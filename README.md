@@ -4,6 +4,17 @@
 ## Компиляция 
 На Unix системах `./build.sh -v 1.0.0 -d`. Флаг `-d` отвечает за дебаг версию с выводом логов уровня `DEBUG`.
 
+## Редактирование
+Для корректной типизации и подсказок кода, рекоменду в корень проекда докачать следующие репозитории:
+
+```bash
+git clone git@bitbucket.org:IzeBerg/modssettingsapi.git
+git clone https://github.com/IzeBerg/wot-src.git
+git clone https://github.com/SoprachevAK/BigWorldPlaceholder.git
+```
+
+При редактировании в `vscode` установите расширение `Ruff`
+
 ## Схема API v1
 ### Запрос позиций
 `GET /api/v1/positions`
