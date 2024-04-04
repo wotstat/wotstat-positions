@@ -8,7 +8,7 @@ from debug_utils import LOG_CURRENT_EXCEPTION
 from constants import AUTH_REALM
 from account_shared import readClientServerVersion
 
-from .Logger import getLevelOrder, LEVELS_ORDER
+from .Logger import ILoggerBackend, getLevelOrder, LEVELS_ORDER
 
 LEVELS_NAMES = list(LEVELS_ORDER.keys())
 
@@ -18,7 +18,7 @@ def generate_session_id():
   unique_bytes = current_time + random_bytes
   return hashlib.sha256(unique_bytes).hexdigest()
 
-class ServerLoggerBackend():
+class ServerLoggerBackend(ILoggerBackend):
   __sendingQueue = []
 
   def __init__(self, url, prefix, source, modVersion, minLevel="INFO"):
@@ -63,17 +63,18 @@ class ServerLoggerBackend():
       streams = []
 
       for level in LEVELS_NAMES:
-        current = filter(lambda l: l[1] == level, self.__sendingQueue)
+        current = filter(lambda msg: msg[1] == level, self.__sendingQueue)
         if len(current) == 0: continue
 
         streams.append({
           "stream": dict(defaultStreamLabels, level=level),
-          "values": map(lambda l: [str(l[0]), l[2], defaultStreamMeta], current)
+          "values": map(lambda msg: [str(msg[0]), msg[2], defaultStreamMeta], current)
         })
 
       postData = json.dumps({"streams": streams}, ensure_ascii=False)
 
       def sendCallback(res):
+        # type: (BigWorld.WGUrlResponse) -> None
         if res is not None and res.responseCode != 200:
           print('%slogger sending error' % self.__prefix)
           print(res.body)
@@ -84,7 +85,7 @@ class ServerLoggerBackend():
                         method='POST',
                         postData=postData)
 
-    except:
+    except Exception:
       print("%s[LOGGER EXCEPTION]" % self.__prefix)
       LOG_CURRENT_EXCEPTION()
 

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple  # noqa: F401
 
 class IPositionRequester(object):
   def start(self):

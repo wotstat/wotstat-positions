@@ -34,7 +34,7 @@ class _OverrideLib(object):
   def __logTrace(self, func, debug):
     if debug:
       import traceback
-      print traceback.format_exc()  # Test
+      print(traceback.format_exc())  # Test
 
   def __eventHandler(self, func, debug, prepend, e, m, *a, **k):
     try:

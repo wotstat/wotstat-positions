@@ -1,5 +1,3 @@
-import BigWorld
-
 import Keys
 from Singleton import Singleton
 
@@ -55,7 +53,7 @@ class Settings(Singleton):
 
   def __settingsApiInit(self):
     try:
-      from gui.modsSettingsApi import g_modsSettingsApi, templates
+      from gui.modsSettingsApi import g_modsSettingsApi, templates # type: ignore
 
       def onModSettingsChanged(name, settings):
         if name == self.name:

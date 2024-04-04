@@ -1,6 +1,6 @@
-from typing import List, Tuple, Dict # noqa: F401
+from typing import Any, List, Tuple, Dict # noqa: F401
 
-import BigWorld # type: ignore
+import BigWorld
 from gui.shared.personality import ServicesLocator
 from account_helpers.AccountSettings import AccountSettings
 from gui.Scaleform.daapi.view.battle.shared.markers2d.manager import MarkersManager # noqa: F401
@@ -13,7 +13,7 @@ from gui.battle_control import minimap_utils
 
 from ..common.Logger import Logger
 from ..common.HotKeys import HotKeys
-from . import IPositionDrawer, PositionPoint, PositionArea # noqa: F401
+from . import IPositionDrawer, PositionPoint, PositionArea  # noqa: F401
 
 logger = Logger.instance()
 
@@ -233,7 +233,7 @@ class Marker():
     self.__minimap.setActive(self.handle, active)
 
   def invoke(self, methodName, *args):
-    # type: (str, *any) -> None
+    # type: (str, *Any) -> None
     self.__minimap.invoke(self.handle, methodName, *args)
 
   def remove(self):

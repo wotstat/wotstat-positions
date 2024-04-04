@@ -1,3 +1,4 @@
+from typing import List  # noqa: F401
 from Singleton import Singleton
 
 LEVELS_ORDER = {
@@ -11,7 +12,13 @@ LEVELS_ORDER = {
 def getLevelOrder(level):
   return LEVELS_ORDER[level] if level in LEVELS_ORDER else -1
 
-class SimpleLoggerBackend:
+
+class ILoggerBackend:
+  def printlog(self, level, log):
+    # type: (str, str) -> None
+    pass
+
+class SimpleLoggerBackend(ILoggerBackend):
   def __init__(self, prefix, minLevel="INFO"):
     self.prefix = prefix
     self.minLevelOrder = getLevelOrder(minLevel)
@@ -28,10 +35,11 @@ class Logger(Singleton):
   
   def _singleton_init(self):
     self.isSetup = False
-    self.backends = []
+    self.backends = [] # type: List[ILoggerBackend]
     self.preSetupQueue = []
 
   def setup(self, backends):
+    # type: (List[ILoggerBackend]) -> None
     self.backends = backends
     self.isSetup = True
 
