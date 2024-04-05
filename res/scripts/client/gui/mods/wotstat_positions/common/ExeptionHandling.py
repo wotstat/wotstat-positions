@@ -6,7 +6,7 @@ from Event import Event
 
 from .Logger import Logger
 
-def __currentExeptionToString(tags=None, frame=1):
+def _currentExeptionToString(tags=None, frame=1):
   msg = _makeMsgHeader(sys._getframe(frame)) + '\n'
   etype, value, tb = sys.exc_info()
   msg += ''.join(format_exception(etype, value, tb, None))
@@ -25,7 +25,7 @@ def withExceptionHandling(logger=Logger.instance()):
         return f(*args, **kwargs)
       except:
         if logger:
-          logger.critical(__currentExeptionToString())
+          logger.critical(_currentExeptionToString())
         else:
           LOG_CURRENT_EXCEPTION()
     return wrapped
@@ -42,6 +42,6 @@ class SendExceptionEvent(Event):
         delegate(*args, **kwargs)
       except:
         if self.logger:
-          self.logger.critical(__currentExeptionToString())
+          self.logger.critical(_currentExeptionToString())
         else:
           LOG_CURRENT_EXCEPTION()

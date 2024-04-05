@@ -1,7 +1,7 @@
 
 from constants import ROLE_TYPE_TO_LABEL
 
-def short_tank_type(tag):
+def shortTankType(tag):
   tags = {
     'lightTank': 'LT',
     'mediumTank': 'MT',
@@ -12,7 +12,7 @@ def short_tank_type(tag):
   return tags[tag] if tag in tags else tag
 
 
-def get_tank_type(vehicleTags):
+def getTankType(vehicleTags):
   tags = vehicleTags
   res = 'mediumTank' if 'mediumTank' in tags \
     else 'heavyTank' if 'heavyTank' in tags \
@@ -24,3 +24,6 @@ def get_tank_type(vehicleTags):
 
 def get_tank_role(role):
   return ROLE_TYPE_TO_LABEL.get(role, 'None')
+
+def mapInterval(value, fromMin, fromMax, toMin, toMax):
+  return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin

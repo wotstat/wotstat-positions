@@ -25,6 +25,9 @@ RU = {
   'settings:never': 'Никогда',
   'settings:onAlt': 'По нажанитю на Alt',
   'settings:always': 'Постоянно',
+  'battleMessage:showArea': 'Отображение областей',
+  'battleMessage:showMiniMarkers': 'Отображение позиций',
+  'battleMessage:showIdealMarker': 'Отображение наилучшего маркера',
 }
 
 EN = {

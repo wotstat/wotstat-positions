@@ -1,8 +1,10 @@
 from .WotHookEvents import wotHookEvents
 from ..common.Logger import Logger
+from ..common.Settings import Settings, SettingsKeys
 from . import IPositionRequester  # noqa: F401
 
 logger = Logger.instance()
+settings = Settings.instance()
 
 class LifecycleStarter(object):
 
@@ -16,7 +18,8 @@ class LifecycleStarter(object):
       
   def __onBecomePlayer(self, *a, **k):
     logger.debug("On become player")
-    self.__requester.start()
+    if settings.get(SettingsKeys.ENABLED):
+      self.__requester.start()
 
   def __onBecomeNonPlayer(self, *a, **k):
     logger.debug("On become non player")

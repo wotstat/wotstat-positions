@@ -14,6 +14,21 @@ class ShowVariants:
 
 DropdownVariants = [t('settings:never'), t('settings:onAlt'), t('settings:always')]
 
+class SettingsKeys:
+  ENABLED = 'enabled'
+  UPDATE_INTERVAL = 'updateInterval'
+  SHOW_AREA = 'showArea'
+  SHOW_MINI_MARKERS = 'showMiniMarkers'
+  SHOW_IDEAL_MARKER = 'showIdealMarker'
+  AREA_CHANGE_KEY = 'areaChangeKey'
+  MARKERS_CHANGE_KEY = 'markersChangeKey'
+  IDEAL_CHANGE_KEY = 'idealChangeKey'
+  AREA_DENSITY = 'areaDensity'
+
+class SettingsConstants:
+  DENSITY_MIN = 0
+  DENSITY_MAX = 100
+
 class Settings(Singleton):
 
   @staticmethod
@@ -21,15 +36,15 @@ class Settings(Singleton):
       return Settings()
   
   defaultSettings = {
-    'enabled': True,
-    'updateInterval': 30,
-    'showArea': ShowVariants.ALWAYS,
-    'showMiniMarkers': ShowVariants.NEVER,
-    'showIdealMarker': ShowVariants.ALWAYS,
-    'areaChangeKey': [Keys.KEY_LCONTROL, Keys.KEY_P],
-    'markersChangeKey': [Keys.KEY_LCONTROL, Keys.KEY_K],
-    'idealChangeKey': [Keys.KEY_LCONTROL, Keys.KEY_L],
-    'areaDensity': 20.0,
+    SettingsKeys.ENABLED: True,
+    SettingsKeys.UPDATE_INTERVAL: 30,
+    SettingsKeys.SHOW_AREA: ShowVariants.ALWAYS,
+    SettingsKeys.SHOW_MINI_MARKERS: ShowVariants.NEVER,
+    SettingsKeys.SHOW_IDEAL_MARKER: ShowVariants.ALWAYS,
+    SettingsKeys.AREA_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_P],
+    SettingsKeys.MARKERS_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_K],
+    SettingsKeys.IDEAL_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_L],
+    SettingsKeys.AREA_DENSITY: 65,
   }
 
   settings = defaultSettings.copy()
@@ -43,6 +58,18 @@ class Settings(Singleton):
 
   def get(self, name):
     return self.settings.get(name, None)
+  
+  def set(self, name, value):
+    if name not in self.settings:
+      logger.error('Setting %s not found' % name)
+
+    self.settings[name] = value
+
+    try:
+      from gui.modsSettingsApi import g_modsSettingsApi
+      g_modsSettingsApi.updateModSettings(self.name, self.settings)
+    except:
+      pass
 
   def __onModSettingsChanged(self, settings):
     self.settings = settings
@@ -64,25 +91,27 @@ class Settings(Singleton):
           self.__onModSettingsButtonPressed(varName, value)
 
       settings = self.settings
+      SK = SettingsKeys
       template = {
         'modDisplayName': t('settings:modDisplayName'),
         'enabled': True,
         'column1': [
-          templates.createDropdown(t('settings:showArea'), 'showArea', DropdownVariants, settings['showArea'], tooltip=t('settings:showAreaTooltip')),
-          templates.createDropdown(t('settings:showMiniMarkers'), 'showMiniMarkers', DropdownVariants, settings['showMiniMarkers'], tooltip=t('settings:showMiniMarkersTooltip')),
-          templates.createDropdown(t('settings:showIdealMarker'), 'showIdealMarker', DropdownVariants, settings['showIdealMarker'], tooltip=t('settings:showIdealTooltip')),
-          templates.createHotkey(t('settings:areaChangeKey'), 'areaChangeKey', settings['areaChangeKey'], tooltip=t('settings:areaChangeKeyTooltip')),
-          templates.createHotkey(t('settings:markersChangeKey'), 'markersChangeKey', settings['markersChangeKey'], tooltip=t('settings:markersChangeKeyTooltip')),
-          templates.createHotkey(t('settings:idealChangeKey'), 'idealChangeKey', settings['idealChangeKey'], tooltip=t('settings:idealChangeKeyTooltip')),
+          templates.createDropdown(t('settings:showArea'), SK.SHOW_AREA, DropdownVariants, settings[SK.SHOW_AREA], tooltip=t('settings:showAreaTooltip')),
+          templates.createDropdown(t('settings:showMiniMarkers'), SK.SHOW_MINI_MARKERS, DropdownVariants, settings[SK.SHOW_MINI_MARKERS], tooltip=t('settings:showMiniMarkersTooltip')),
+          templates.createDropdown(t('settings:showIdealMarker'), SK.SHOW_IDEAL_MARKER, DropdownVariants, settings[SK.SHOW_IDEAL_MARKER], tooltip=t('settings:showIdealTooltip')),
+          templates.createHotkey(t('settings:areaChangeKey'), SK.AREA_CHANGE_KEY, settings[SK.AREA_CHANGE_KEY], tooltip=t('settings:areaChangeKeyTooltip')),
+          templates.createHotkey(t('settings:markersChangeKey'), SK.MARKERS_CHANGE_KEY, settings[SK.MARKERS_CHANGE_KEY], tooltip=t('settings:markersChangeKeyTooltip')),
+          templates.createHotkey(t('settings:idealChangeKey'), SK.IDEAL_CHANGE_KEY, settings[SK.IDEAL_CHANGE_KEY], tooltip=t('settings:idealChangeKeyTooltip')),
         ],
         'column2': [
-          templates.createSlider(t('settings:interval'), 'updateInterval', settings['updateInterval'], 5, 120, 5,
+          templates.createSlider(t('settings:interval'), SK.UPDATE_INTERVAL, settings[SK.UPDATE_INTERVAL], 5, 120, 5,
                                  tooltip=t('settings:intervalTooltip'), width=350, format=t('settings:intervalFormat')),
           # TODO: reset button, but not refresh UI
           # templates.createSlider(t('settings:interval'), 'updateInterval', settings['updateInterval'], 5, 120, 5,
           #                        tooltip=t('settings:intervalTooltip'), width=350, format=t('settings:intervalFormat'),
           #                        button=templates.createButton(width=70, height=25, offsetTop=-33, offsetLeft=-52, text=t('settings:reset'))),
-          templates.createSlider(t('settings:areaDensity'), 'areaDensity', settings['areaDensity'], 5, 50, 5, tooltip=t('settings:areaDensityTooltip'), width=350),
+          templates.createSlider(t('settings:areaDensity'), SK.AREA_DENSITY, settings[SK.AREA_DENSITY], 
+                                 SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, 5, tooltip=t('settings:areaDensityTooltip'), width=350),
         ]
       }
 

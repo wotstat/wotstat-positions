@@ -3,14 +3,18 @@ import json
 import BigWorld # type: ignore
 from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
+from gui import InputHandler
+import Keys
 
 from ..common.Logger import Logger
+from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExeptionHandling import withExceptionHandling
-from .utils import short_tank_type, get_tank_type, get_tank_role
+from .utils import shortTankType, getTankType, get_tank_role
 from .WotHookEvents import wotHookEvents
 from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  # noqa: F401
 
 logger = Logger.instance()
+settings = Settings.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
 
 def getPlayerVehicle(player=BigWorld.player()):
@@ -27,22 +31,28 @@ def getPlayerVehicle(player=BigWorld.player()):
 
 class PositionRequester(IPositionRequester):
 
-  def __init__(self, serverUrl, requestPeriod, drawer):
-    # type: (str, int, IPositionDrawer) -> None
+
+  def __init__(self, serverUrl, drawer):
+    # type: (str, IPositionDrawer) -> None
 
     self.__drawer = drawer
     self.__serverUrl = serverUrl
-    self.__requestPeriod = requestPeriod
     self.__lastRequestTime = 0
 
     self.__callbackID = None
     self.__isEnable = False
+    self.__lastResponse = None # type: PositionsResponse
+    self.__altPressed = False
 
     wotHookEvents.PlayerAvatar_onArenaPeriodChange += self.__onArenaPeriodChange
+    settings.onSettingsChanged += self.__onSettingsChanged
+    InputHandler.g_instance.onKeyDown += self.__onKey
+    InputHandler.g_instance.onKeyUp += self.__onKey
       
   def start(self):
     self.__isEnable = True
     self.__lastRequestTime = 0
+    self.__lastResponse = None
 
     player = BigWorld.player()
     if hasattr(player, 'arena'):
@@ -60,6 +70,18 @@ class PositionRequester(IPositionRequester):
     self.__drawer.reset()
     if self.__callbackID is not None:
       BigWorld.cancelCallback(self.__callbackID)
+
+  @withExceptionHandling()
+  def __onSettingsChanged(self, settings):
+    self.__redraw()
+
+  @withExceptionHandling()
+  def __onKey(self, event):
+    # type: (BigWorld.KeyEvent) -> None
+    if event.key in (Keys.KEY_LALT, Keys.KEY_RALT):
+      if self.__altPressed != event.isKeyDown():
+        self.__altPressed = event.isKeyDown()
+        self.__redraw()
 
   @withExceptionHandling()
   def __requestLoop(self):
@@ -81,7 +103,9 @@ class PositionRequester(IPositionRequester):
       return
     
     time = BigWorld.time()
-    if time - self.__lastRequestTime < self.__requestPeriod:
+    interval = settings.get(SettingsKeys.UPDATE_INTERVAL)
+    interval = 5 if interval < 5 else interval
+    if time - self.__lastRequestTime < interval:
       return
     self.__lastRequestTime = time
 
@@ -93,7 +117,7 @@ class PositionRequester(IPositionRequester):
       'team': player.team,
       'tank': BigWorld.entities[BigWorld.player().playerVehicleID].typeDescriptor.name,
       'level': player.vehicleTypeDescriptor.level,
-      'type': short_tank_type(get_tank_type(player.vehicleTypeDescriptor.type.tags)),
+      'type': shortTankType(getTankType(player.vehicleTypeDescriptor.type.tags)),
       'role': get_tank_role(player.vehicleTypeDescriptor.role),
       'health': float(vehicle.health) / vehicle.maxHealth,
       'position': '(%s;%s)' % (int(player.position[0]), int(player.position[2])),
@@ -124,13 +148,32 @@ class PositionRequester(IPositionRequester):
       logger.error('Response body is not a valid JSON: %s' % body)
       return
     
-    response = PositionsResponse(parsed)
-    
+    self.__lastResponse = PositionsResponse(parsed)
+    self.__redraw()
+  
+  def __redraw(self):
     self.__drawer.clear()
-    self.__drawer.drawPolygons(response.getPolygons())
-    self.__drawer.drawPoints(response.getPoints())
-    self.__drawer.drawIdealPoints(response.getIdealPoints())
+
+    if not self.__lastResponse: return
+    if not settings.get(SettingsKeys.ENABLED): return
+    if not self.__isEnable: return
+
+    response = self.__lastResponse
     
+    if self.__shouldDraw(SettingsKeys.SHOW_AREA):
+      self.__drawer.drawPolygons(response.getPolygons())
+
+    if self.__shouldDraw(SettingsKeys.SHOW_MINI_MARKERS):
+      self.__drawer.drawPoints(response.getPoints())
+
+    if self.__shouldDraw(SettingsKeys.SHOW_IDEAL_MARKER):
+      self.__drawer.drawIdealPoints(response.getIdealPoints())
+
+  def __shouldDraw(self, key):
+    variant = settings.get(key)
+    return variant == ShowVariants.ALWAYS or \
+      (variant == ShowVariants.ON_ALT and self.__altPressed)
+
   def __onArenaPeriodChange(self, obj, period, periodEndTime, periodLength, *a, **k):
     if period is ARENA_PERIOD.BATTLE:
       self.__startBattleTime = periodEndTime - periodLength
