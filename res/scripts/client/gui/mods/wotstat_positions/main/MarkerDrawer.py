@@ -67,7 +67,7 @@ class MarkerDrawer(IPositionDrawer):
     for point in points:
       position = point.position
       efficiency = point.efficiency
-      marker = self.__createMarker((position[0], 0, position[1]), ENTRY_SYMBOL_NAME.LOCATION_MARKER, CONTAINER_NAME.ICONS)
+      marker = self.__createMarker((position[0], position[1]), ENTRY_SYMBOL_NAME.LOCATION_MARKER, CONTAINER_NAME.ICONS)
       if marker:
         marker.setScale(efficiency)
 
@@ -76,6 +76,7 @@ class MarkerDrawer(IPositionDrawer):
 
     density = settings.get(SettingsKeys.AREA_DENSITY)
     step = int(mapInterval(density, SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, MAX_AREA_STEP, MIN_AREA_STEP))
+    scaleFactor = mapInterval(step, MIN_AREA_STEP, MAX_AREA_STEP, 0.4, 0.8)
 
     boundingBox = BigWorld.player().arena.arenaType.boundingBox
     x_min, y_min = boundingBox[0]
@@ -91,7 +92,7 @@ class MarkerDrawer(IPositionDrawer):
       for y in yRange:
         for polygon in polygons:
           if polygon.isPointInPolygon((x, y)):
-            self.__createPointMarker((x, y + offset), green=True, scale=polygon.efficiency)
+            self.__createPointMarker((x, y + offset), green=True, scale=polygon.efficiency * scaleFactor)
             break
 
   def drawIdealPoints(self, points):
@@ -135,6 +136,8 @@ class MarkerDrawer(IPositionDrawer):
     self.__markerManager = None
 
   def __createMarker(self, position, markerType, container, scale=1.0, active=True):
+    # type: (Tuple[float, float], str, str, float, bool) -> Marker
+    
     markers = self.__freeMarkers[markerType]
     if len(markers) > 0:
       marker = markers.pop()
@@ -212,7 +215,7 @@ class MarkerDrawer(IPositionDrawer):
 
 class Marker():
   def __init__(self, position, markerType, container, scale, minimap, baseScale, active=True):
-    # type: (Tuple[float, float, float], str, str, float, plugins.MinimapPlugin, float, bool) -> Marker
+    # type: (Tuple[float, float], str, str, float, plugins.MinimapPlugin, float, bool) -> Marker
     self.__position = position
     self.__markerType = markerType
     self.__container = container
