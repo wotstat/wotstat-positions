@@ -20,13 +20,14 @@ class WotHookEvents:
     self.__hangarSpace.onSpaceCreate += self.__onHangarSpaceCreate
 
     self.listeners = {}
-    # ------------------INIT------------------#
+    
     self.onConnected = SendExceptionEvent()
     self.onLoggedOn = SendExceptionEvent()
     self.onHangarLoaded = SendExceptionEvent()
     self.Avatar_onBecomePlayer = SendExceptionEvent()
     self.Avatar_onBecomeNonPlayer = SendExceptionEvent()
     self.Vehicle_onEnterWorld = SendExceptionEvent()
+    self.Vehicle_onHealthChanged = SendExceptionEvent()
     self.PlayerAvatar_onArenaPeriodChange = SendExceptionEvent()
    
   def __onConnected(self):
@@ -41,12 +42,9 @@ class WotHookEvents:
 
 wotHookEvents = WotHookEvents()
 
-# ------------------INIT------------------#
-
 @g_overrideLib.registerEvent(PlayerAvatar, 'onBecomePlayer')
 def onBecomePlayer(self, *a, **k):
   wotHookEvents.Avatar_onBecomePlayer(self, *a, **k)
-
 
 @g_overrideLib.registerEvent(PlayerAvatar, 'onBecomeNonPlayer')
 def onBecomeNonPlayer(self, *a, **k):
@@ -55,6 +53,10 @@ def onBecomeNonPlayer(self, *a, **k):
 @g_overrideLib.registerEvent(Vehicle, 'onEnterWorld')
 def onEnterWorld(self, *a, **k):
   wotHookEvents.Vehicle_onEnterWorld(self, *a, **k)
+
+@g_overrideLib.registerEvent(Vehicle, 'onHealthChanged')
+def onHealthChanged(self, *a, **k):
+  wotHookEvents.Vehicle_onHealthChanged(self, *a, **k)
 
 @g_overrideLib.registerEvent(PlayerAvatar, '_PlayerAvatar__onArenaPeriodChange')
 def onArenaPeriodChange(self, *a, **k):

@@ -11,6 +11,7 @@ from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExeptionHandling import withExceptionHandling
 from .utils import shortTankType, getTankType, get_tank_role
 from .WotHookEvents import wotHookEvents
+from .ArenaInfoProvider import ArenaInfoProvider
 from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  # noqa: F401
 
 logger = Logger.instance()
@@ -38,6 +39,8 @@ class PositionRequester(IPositionRequester):
     self.__drawer = drawer
     self.__serverUrl = serverUrl
     self.__lastRequestTime = 0
+
+    self.__arenaInfoProvider = ArenaInfoProvider()
 
     self.__callbackID = None
     self.__isEnable = False
@@ -122,8 +125,12 @@ class PositionRequester(IPositionRequester):
       'health': float(vehicle.health) / vehicle.maxHealth,
       'position': '(%s;%s)' % (int(player.position[0]), int(player.position[2])),
       'time': int(self.__battle_time()),
-      'allyfrags': 0,
-      'enemyfrags': 0,
+      'allyFrags': self.__arenaInfoProvider.allyTeamFragsCount,
+      'enemyFrags': self.__arenaInfoProvider.enemyTeamFragsCount,
+      'allyHealth': self.__arenaInfoProvider.allyTeamHealth[0],
+      'enemyHealth': self.__arenaInfoProvider.enemyTeamHealth[0],
+      'allyMaxHealth': self.__arenaInfoProvider.allyTeamHealth[1],
+      'enemyMaxHealth': self.__arenaInfoProvider.enemyTeamHealth[1],
     }
 
     targetUrl = self.__serverUrl + '/positions?' + '&'.join(['%s=%s' % (k, v) for k, v in params.items()])

@@ -20,22 +20,26 @@ git clone https://github.com/SoprachevAK/BigWorldPlaceholder.git
 `GET /api/v1/positions`
 
 Параметры:
-| Параметр   | Описание                                                  | Пример                 |
-| ---------- | --------------------------------------------------------- | ---------------------- |
-| region     | Регион игрока `AUTH_REALM`                                | RU                     |
-| mode       | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                |
-| gameplay   | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                    |
-| arena      | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big |
-| team       | Команда игрока `player.team`                              | 0                      |
-| tank       | Танк тег                                                  | uk:GB100_Manticore     |
-| level      | Уровень танка                                             | 10                     |
-| type       | Тип танка                                                 | LT                     |
-| role       | Роль танка                                                | role_LT_universal      |
-| health     | ХП танка в долях от максимального                         | 0.95                   |
-| position   | Координата танка                                          | (100.8,0,-100)         |
-| time       | Время боя в секундах                                      | 100                    |
-| allyfrags  | Число фрагов союзников                                    | 5                      |
-| enemyfrags | Число фрагов противников                                  | 5                      |
+| Параметр       | Описание                                                  | Пример                 |
+| -------------- | --------------------------------------------------------- | ---------------------- |
+| region         | Регион игрока `AUTH_REALM`                                | RU                     |
+| mode           | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                |
+| gameplay       | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                    |
+| arena          | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big |
+| team           | Команда игрока `player.team`                              | 0                      |
+| tank           | Танк тег                                                  | uk:GB100_Manticore     |
+| level          | Уровень танка                                             | 10                     |
+| type           | Тип танка                                                 | LT                     |
+| role           | Роль танка                                                | role_LT_universal      |
+| health         | ХП танка в долях от максимального                         | 0.95                   |
+| position       | Координата танка                                          | (100.8,0,-100)         |
+| time           | Время боя в секундах                                      | 100                    |
+| allyFrags      | Число фрагов союзников                                    | 5                      |
+| enemyFrags     | Число фрагов противников                                  | 5                      |
+| allyHealth     | Суммарное здоровье союзников                              | 15000                  |
+| enemyHealth    | Суммарное здоровье противников                            | 16000                  |
+| allyMaxHealth  | Суммарное максимальное здоровье союзников                 | 20000                  |
+| enemyMaxHealth | Суммарное максимальное здоровье противников               | 20000                  |
 
 Ответ:
 ```json
