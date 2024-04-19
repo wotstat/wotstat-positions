@@ -141,8 +141,8 @@ class ArenaInfoProvider():
 
     for v in self.vehicles.values():
       if v.team == self.playerTeam:
-        self.allyTeamHealth[0] += v.health
-        self.allyTeamHealth[1] += v.maxHealth
+        self.allyTeamHealth[0] += max(0, v.health)
+        self.allyTeamHealth[1] += max(0, v.maxHealth)
       else:
-        self.enemyTeamHealth[0] += v.health
-        self.enemyTeamHealth[1] += v.maxHealth
+        self.enemyTeamHealth[0] += max(0, v.health)
+        self.enemyTeamHealth[1] += max(0, v.maxHealth)

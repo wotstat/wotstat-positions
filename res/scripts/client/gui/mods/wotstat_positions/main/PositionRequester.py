@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import BigWorld # type: ignore
 from Vehicle import Vehicle
@@ -47,6 +48,8 @@ class PositionRequester(IPositionRequester):
     self.__lastResponse = None # type: PositionsResponse
     self.__altPressed = False
 
+    self.__battleUUID = None
+
     wotHookEvents.PlayerAvatar_onArenaPeriodChange += self.__onArenaPeriodChange
     settings.onSettingsChanged += self.__onSettingsChanged
     InputHandler.g_instance.onKeyDown += self.__onKey
@@ -56,6 +59,7 @@ class PositionRequester(IPositionRequester):
     self.__isEnable = True
     self.__lastRequestTime = 0
     self.__lastResponse = None
+    self.__battleUUID = str(uuid.uuid4())
 
     player = BigWorld.player()
     if hasattr(player, 'arena'):
@@ -100,6 +104,10 @@ class PositionRequester(IPositionRequester):
       logger.debug('Player is not on arena')
       return
     
+    if not self.__battleUUID:
+      logger.debug('UUID is none')
+      return
+
     vehicle = getPlayerVehicle(player)
     if vehicle is None:
       logger.debug('Player vehicle is None')
@@ -113,6 +121,7 @@ class PositionRequester(IPositionRequester):
     self.__lastRequestTime = time
 
     params = {
+      'id': self.__battleUUID,
       'region': AUTH_REALM,
       'mode': ARENA_TAGS[player.arena.bonusType],
       'gameplay': ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16],
@@ -122,7 +131,7 @@ class PositionRequester(IPositionRequester):
       'level': player.vehicleTypeDescriptor.level,
       'type': shortTankType(getTankType(player.vehicleTypeDescriptor.type.tags)),
       'role': get_tank_role(player.vehicleTypeDescriptor.role),
-      'health': float(vehicle.health) / vehicle.maxHealth,
+      'health': max(0, float(vehicle.health) / vehicle.maxHealth),
       'position': '(%s;%s)' % (int(player.position[0]), int(player.position[2])),
       'time': int(self.__battle_time()),
       'allyFrags': self.__arenaInfoProvider.allyTeamFragsCount,

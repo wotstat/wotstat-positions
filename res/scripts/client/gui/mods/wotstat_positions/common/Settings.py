@@ -38,8 +38,8 @@ class Settings(Singleton):
   defaultSettings = {
     SettingsKeys.ENABLED: True,
     SettingsKeys.UPDATE_INTERVAL: 30,
-    SettingsKeys.SHOW_AREA: ShowVariants.ALWAYS,
-    SettingsKeys.SHOW_MINI_MARKERS: ShowVariants.NEVER,
+    SettingsKeys.SHOW_AREA: ShowVariants.ON_ALT,
+    SettingsKeys.SHOW_MINI_MARKERS: ShowVariants.ALWAYS,
     SettingsKeys.SHOW_IDEAL_MARKER: ShowVariants.ALWAYS,
     SettingsKeys.AREA_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_P],
     SettingsKeys.MARKERS_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_K],
