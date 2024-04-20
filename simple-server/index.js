@@ -1,12 +1,15 @@
 const express = require('express')
 
 const app = express()
-const port = 8000
+const port = process.env.PORT || 8000
 
 app.use(express.json());
 
-app.get('/api/v1/positions', (req, res) => {
+app.post('/api/v1/positions', (req, res) => {
   const {
+    id,
+    language,
+    token,
     region,
     mode,
     gameplay,
@@ -25,9 +28,10 @@ app.get('/api/v1/positions', (req, res) => {
     enemyHealth,
     allyMaxHealth,
     enemyMaxHealth,
-  } = req.query
+  } = req.body
 
-  console.log({ 
+  console.log({
+    id, language, token,
     region, mode, gameplay, arena, team, tank, level, type, role, health, position,
     time, allyFrags, enemyFrags, allyHealth, enemyHealth, allyMaxHealth, enemyMaxHealth
   })
@@ -35,9 +39,10 @@ app.get('/api/v1/positions', (req, res) => {
   return res.json({
     status: "ok",
     message: {
-      RU: "Всё работает",
-      EN: "Works fine"
+      type: "info",
+      value: "Позиции обновлены. 1234 значений"
     },
+    token: new Date().getTime().toString(),
     statistics: {
       tag: tank,
       role,

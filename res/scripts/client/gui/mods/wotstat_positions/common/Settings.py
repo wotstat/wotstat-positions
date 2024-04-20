@@ -24,6 +24,7 @@ class SettingsKeys:
   MARKERS_CHANGE_KEY = 'markersChangeKey'
   IDEAL_CHANGE_KEY = 'idealChangeKey'
   AREA_DENSITY = 'areaDensity'
+  SHOW_INFO_MESSAGES = 'showInfoMessages'
 
 class SettingsConstants:
   DENSITY_MIN = 0
@@ -45,6 +46,7 @@ class Settings(Singleton):
     SettingsKeys.MARKERS_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_K],
     SettingsKeys.IDEAL_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_L],
     SettingsKeys.AREA_DENSITY: 65,
+    SettingsKeys.SHOW_INFO_MESSAGES: True,
   }
 
   settings = defaultSettings.copy()
@@ -112,6 +114,7 @@ class Settings(Singleton):
           #                        button=templates.createButton(width=70, height=25, offsetTop=-33, offsetLeft=-52, text=t('settings:reset'))),
           templates.createSlider(t('settings:areaDensity'), SK.AREA_DENSITY, settings[SK.AREA_DENSITY], 
                                  SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, 5, tooltip=t('settings:areaDensityTooltip'), width=350),
+          templates.createCheckbox(t('settings:showInfoMessages'), SK.SHOW_INFO_MESSAGES, settings[SK.SHOW_INFO_MESSAGES], tooltip=t('settings:showInfoMessagesTooltip')),
         ]
       }
 

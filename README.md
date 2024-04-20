@@ -17,37 +17,71 @@ git clone https://github.com/SoprachevAK/BigWorldPlaceholder.git
 
 ## Схема API v1
 ### Запрос позиций
-`GET /api/v1/positions`
+`POST /api/v1/positions`
 
-Параметры:
-| Параметр       | Описание                                                  | Пример                 |
-| -------------- | --------------------------------------------------------- | ---------------------- |
-| region         | Регион игрока `AUTH_REALM`                                | RU                     |
-| mode           | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                |
-| gameplay       | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                    |
-| arena          | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big |
-| team           | Команда игрока `player.team`                              | 0                      |
-| tank           | Танк тег                                                  | uk:GB100_Manticore     |
-| level          | Уровень танка                                             | 10                     |
-| type           | Тип танка                                                 | LT                     |
-| role           | Роль танка                                                | role_LT_universal      |
-| health         | ХП танка в долях от максимального                         | 0.95                   |
-| position       | Координата танка                                          | (100.8,0,-100)         |
-| time           | Время боя в секундах                                      | 100                    |
-| allyFrags      | Число фрагов союзников                                    | 5                      |
-| enemyFrags     | Число фрагов противников                                  | 5                      |
-| allyHealth     | Суммарное здоровье союзников                              | 15000                  |
-| enemyHealth    | Суммарное здоровье противников                            | 16000                  |
-| allyMaxHealth  | Суммарное максимальное здоровье союзников                 | 20000                  |
-| enemyMaxHealth | Суммарное максимальное здоровье противников               | 20000                  |
+Тело:
+| Параметр       | Описание                                                  | Пример                               |
+| -------------- | --------------------------------------------------------- | ------------------------------------ |
+| id             | UUID боя, уникальный на начало                            | 8bb133ae-747b-4c5d-9c8f-3d8c7160c3e3 |
+| language       | Язык клиента                                              | ru                                   |
+| token          | Токен из прошлого ответа                                  | XXX                                  |
+| region         | Регион игрока `AUTH_REALM`                                | RU                                   |
+| mode           | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                              |
+| gameplay       | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                                  |
+| arena          | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big               |
+| team           | Команда игрока `player.team`                              | 0                                    |
+| tank           | Танк тег                                                  | uk:GB100_Manticore                   |
+| level          | Уровень танка                                             | 10                                   |
+| type           | Тип танка                                                 | LT                                   |
+| role           | Роль танка                                                | role_LT_universal                    |
+| health         | ХП танка в долях от максимального                         | 0.95                                 |
+| position       | Координата танка                                          | { x: 100, z: 100}                    |
+| time           | Время боя в секундах                                      | 100                                  |
+| allyFrags      | Число фрагов союзников                                    | 5                                    |
+| enemyFrags     | Число фрагов противников                                  | 5                                    |
+| allyHealth     | Суммарное здоровье союзников                              | 15000                                |
+| enemyHealth    | Суммарное здоровье противников                            | 16000                                |
+| allyMaxHealth  | Суммарное максимальное здоровье союзников                 | 20000                                |
+| enemyMaxHealth | Суммарное максимальное здоровье противников               | 20000                                |
+
+Пример:
+```json
+{
+  "id": "8bb133ae-747b-4c5d-9c8f-3d8c7160c3e3",
+  "language": "ru",
+  "token": "1713639284541",
+  "region": "RU",
+  "mode": "MAPS_TRAINING",
+  "gameplay": "maps_training",
+  "arena": "spaces/07_lakeville",
+  "team": 1,
+  "tank": "ussr:R04_T-34_MapsTraining_Player_MT_1",
+  "level": 5,
+  "type": "MT",
+  "role": "NotDefined",
+  "health": 0,
+  "position": {
+    "x": -132,
+    "z": -243
+  },
+  "time": 100,
+  "allyFrags": 2,
+  "enemyFrags": 1,
+  "allyHealth": 0,
+  "enemyHealth": 350,
+  "allyMaxHealth": 740,
+  "enemyMaxHealth": 550
+}
+```
 
 Ответ:
 ```json
 {
   "status": "ok",
+  "token": "XXX",
   "message": {
-    "RU": "test",
-    "EN": "test"
+    "type": "info",
+    "value": "test"
   },
   "statistics": {
     "tag": null,

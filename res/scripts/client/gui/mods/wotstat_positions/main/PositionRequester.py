@@ -4,12 +4,15 @@ import uuid
 import BigWorld # type: ignore
 from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
+from gui.Scaleform.genConsts.BATTLE_MESSAGES_CONSTS import BATTLE_MESSAGES_CONSTS
+from helpers import getClientLanguage
 from gui import InputHandler
 import Keys
 
 from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExeptionHandling import withExceptionHandling
+from ..common.BattleMessages import showPlayerMessage
 from .utils import shortTankType, getTankType, get_tank_role
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
@@ -18,6 +21,9 @@ from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  
 logger = Logger.instance()
 settings = Settings.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
+LANGUAGE = getClientLanguage()
+
+JSON_HEADERS = {'Content-Type': 'application/json'}
 
 def getPlayerVehicle(player=BigWorld.player()):
 
@@ -49,6 +55,7 @@ class PositionRequester(IPositionRequester):
     self.__altPressed = False
 
     self.__battleUUID = None
+    self.__currentToken = ''
 
     wotHookEvents.PlayerAvatar_onArenaPeriodChange += self.__onArenaPeriodChange
     settings.onSettingsChanged += self.__onSettingsChanged
@@ -113,6 +120,11 @@ class PositionRequester(IPositionRequester):
       logger.debug('Player vehicle is None')
       return
     
+    battleTime = self.__battleTime()
+    if battleTime <= -10000:
+      logger.debug('Battle is still loading')
+      return
+    
     time = BigWorld.time()
     interval = settings.get(SettingsKeys.UPDATE_INTERVAL)
     interval = 5 if interval < 5 else interval
@@ -122,6 +134,8 @@ class PositionRequester(IPositionRequester):
 
     params = {
       'id': self.__battleUUID,
+      'token': self.__currentToken,
+      'language': LANGUAGE,
       'region': AUTH_REALM,
       'mode': ARENA_TAGS[player.arena.bonusType],
       'gameplay': ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16],
@@ -132,8 +146,8 @@ class PositionRequester(IPositionRequester):
       'type': shortTankType(getTankType(player.vehicleTypeDescriptor.type.tags)),
       'role': get_tank_role(player.vehicleTypeDescriptor.role),
       'health': max(0, float(vehicle.health) / vehicle.maxHealth),
-      'position': '(%s;%s)' % (int(player.position[0]), int(player.position[2])),
-      'time': int(self.__battle_time()),
+      'position': {'x': int(player.position[0]), 'z': int(player.position[2])},
+      'time': int(self.__battleTime()),
       'allyFrags': self.__arenaInfoProvider.allyTeamFragsCount,
       'enemyFrags': self.__arenaInfoProvider.enemyTeamFragsCount,
       'allyHealth': self.__arenaInfoProvider.allyTeamHealth[0],
@@ -142,15 +156,10 @@ class PositionRequester(IPositionRequester):
       'enemyMaxHealth': self.__arenaInfoProvider.enemyTeamHealth[1],
     }
 
-    targetUrl = self.__serverUrl + '/positions?' + '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
-
-    BigWorld.fetchURL(targetUrl, self.__onResponse)
+    BigWorld.fetchURL(self.__serverUrl + '/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
 
   @withExceptionHandling()
   def __onResponse(self, data):
-    if data.responseCode != 200:
-      logger.error('Response status is not 200: %s' % data.responseCode)
-      return
     
     body = data.body
     if not body:
@@ -164,6 +173,28 @@ class PositionRequester(IPositionRequester):
       logger.error('Response body is not a valid JSON: %s' % body)
       return
     
+    message = parsed.get('message', None)
+
+    if message is not None:
+      mType = message.get('type', None)
+      mValue = message.get('value', None)
+      color = {
+        'error': BATTLE_MESSAGES_CONSTS.COLOR_PURPLE,
+        'info': BATTLE_MESSAGES_CONSTS.COLOR_GOLD,
+        'warning': BATTLE_MESSAGES_CONSTS.COLOR_YELLOW
+      }[mType] if mType in ('error', 'info', 'warning') else BATTLE_MESSAGES_CONSTS.COLOR_PURPLE
+
+      logger.info('Server message: [%s] %s' % (mType, mValue))
+      if mType != 'info' or settings.get(SettingsKeys.SHOW_INFO_MESSAGES):
+        showPlayerMessage(mValue, color)
+
+    if 'token' in parsed:
+      self.__currentToken = parsed['token']
+    
+    if data.responseCode != 200:
+      logger.error('Response status is not 200: %s' % data.responseCode)
+      return
+
     self.__lastResponse = PositionsResponse(parsed)
     self.__redraw()
   
@@ -194,7 +225,7 @@ class PositionRequester(IPositionRequester):
     if period is ARENA_PERIOD.BATTLE:
       self.__startBattleTime = periodEndTime - periodLength
 
-  def __battle_time(self):
+  def __battleTime(self):
     player = BigWorld.player()
 
     if not hasattr(player, 'arena'):
