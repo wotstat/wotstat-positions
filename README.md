@@ -20,29 +20,35 @@ git clone https://github.com/SoprachevAK/BigWorldPlaceholder.git
 `POST /api/v1/positions`
 
 Тело:
-| Параметр       | Описание                                                  | Пример                               |
-| -------------- | --------------------------------------------------------- | ------------------------------------ |
-| id             | UUID боя, уникальный на начало                            | 8bb133ae-747b-4c5d-9c8f-3d8c7160c3e3 |
-| language       | Язык клиента                                              | ru                                   |
-| token          | Токен из прошлого ответа                                  | XXX                                  |
-| region         | Регион игрока `AUTH_REALM`                                | RU                                   |
-| mode           | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                              |
-| gameplay       | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                                  |
-| arena          | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big               |
-| team           | Команда игрока `player.team`                              | 0                                    |
-| tank           | Танк тег                                                  | uk:GB100_Manticore                   |
-| level          | Уровень танка                                             | 10                                   |
-| type           | Тип танка                                                 | LT                                   |
-| role           | Роль танка                                                | role_LT_universal                    |
-| health         | ХП танка в долях от максимального                         | 0.95                                 |
-| position       | Координата танка                                          | { x: 100, z: 100}                    |
-| time           | Время боя в секундах                                      | 100                                  |
-| allyFrags      | Число фрагов союзников                                    | 5                                    |
-| enemyFrags     | Число фрагов противников                                  | 5                                    |
-| allyHealth     | Суммарное здоровье союзников                              | 15000                                |
-| enemyHealth    | Суммарное здоровье противников                            | 16000                                |
-| allyMaxHealth  | Суммарное максимальное здоровье союзников                 | 20000                                |
-| enemyMaxHealth | Суммарное максимальное здоровье противников               | 20000                                |
+| Параметр       | Описание                                                  | Пример                                      |
+| -------------- | --------------------------------------------------------- | ------------------------------------------- |
+| id             | UUID боя, уникальный на начало                            | 8bb133ae-747b-4c5d-9c8f-3d8c7160c3e3        |
+| language       | Язык клиента                                              | ru                                          |
+| token          | Токен из прошлого ответа                                  | XXX                                         |
+| region         | Регион игрока `AUTH_REALM`                                | RU                                          |
+| mode           | Режим игры `ARENA_TAGS[player.arena.bonusType]`           | REGULAR                                     |
+| gameplay       | Тип игры `ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16]` | сtf                                         |
+| arena          | Тен название карты `player.arena.arenaType.geometry`      | spaces/03_campania_big                      |
+| team           | Команда игрока `player.team`                              | 0                                           |
+| tank           | Танк тег                                                  | uk:GB100_Manticore                          |
+| level          | Уровень танка                                             | 10                                          |
+| type           | Тип танка                                                 | LT                                          |
+| role           | Роль танка                                                | role_LT_universal                           |
+| health         | ХП танка в долях от максимального                         | 0.95                                        |
+| position       | Координата танка                                          | { x: 100, z: 100}                           |
+| time           | Время боя в секундах                                      | 100                                         |
+| allyFrags      | Число фрагов союзников                                    | 5                                           |
+| enemyFrags     | Число фрагов противников                                  | 5                                           |
+| allyHealth     | Суммарное здоровье союзников                              | 15000                                       |
+| enemyHealth    | Суммарное здоровье противников                            | 16000                                       |
+| allyMaxHealth  | Суммарное максимальное здоровье союзников                 | 20000                                       |
+| enemyMaxHealth | Суммарное максимальное здоровье противников               | 20000                                       |
+| allyRoles      | Роли союзных танкоы                                       | ["role_ATSPG_assault", "role_HT_universal"] |
+| allyTypes      | Типы союзных танков                                       | ["AT", "HT"]                                |
+| allyLevels     | Уровни союзных танков                                     | [10, 10]                                    |
+| enemyRoles     | Роли противников                                          | ["role_ATSPG_assault", "role_HT_universal"] |
+| enemyTypes     | Типы противников                                          | ["AT", "HT"]                                |
+| enemyLevels    | Уровни противников                                        | [10, 10]                                    |
 
 Пример:
 ```json
@@ -70,7 +76,13 @@ git clone https://github.com/SoprachevAK/BigWorldPlaceholder.git
   "allyHealth": 0,
   "enemyHealth": 350,
   "allyMaxHealth": 740,
-  "enemyMaxHealth": 550
+  "enemyMaxHealth": 550,
+  "allyRoles": ["role_ATSPG_assault", "role_HT_universal", "role_HT_support", "role_LT_universal", "role_HT_support", "role_ATSPG_support", "role_ATSPG_sniper", "role_ATSPG_support", "role_MT_support", "role_SPG", "role_MT_universal", "role_ATSPG_assault", "role_MT_sniper", "role_MT_sniper", "role_LT_universal"],
+  "allyTypes": ["AT", "HT", "HT", "LT", "HT", "AT", "AT", "AT", "MT", "SPG", "MT", "AT", "MT", "MT", "LT"],
+  "allyLevels": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+  "enemyRoles": ["role_ATSPG_support", "role_HT_support", "role_ATSPG_support", "role_ATSPG_universal", "role_ATSPG_universal", "role_SPG", "role_MT_universal", "role_LT_universal", "role_MT_universal", "role_MT_universal", "role_MT_universal", "role_HT_break", "role_HT_break", "role_MT_universal", "role_LT_universal"],
+  "enemyTypes": ["AT", "HT", "AT", "AT", "AT", "SPG", "MT", "LT", "MT", "MT", "MT", "HT", "HT", "MT", "LT"],
+  "enemyLevels": [ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 ]
 }
 ```
 

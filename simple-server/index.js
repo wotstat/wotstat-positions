@@ -28,12 +28,19 @@ app.post('/api/v1/positions', (req, res) => {
     enemyHealth,
     allyMaxHealth,
     enemyMaxHealth,
+    allyRoles,
+    allyTypes,
+    allyLevels,
+    enemyRoles,
+    enemyTypes,
+    enemyLevels,
   } = req.body
 
   console.log({
     id, language, token,
     region, mode, gameplay, arena, team, tank, level, type, role, health, position,
-    time, allyFrags, enemyFrags, allyHealth, enemyHealth, allyMaxHealth, enemyMaxHealth
+    time, allyFrags, enemyFrags, allyHealth, enemyHealth, allyMaxHealth, enemyMaxHealth,
+    allyRoles, allyTypes, allyLevels, enemyRoles, enemyTypes, enemyLevels,
   })
 
   return res.json({

@@ -146,3 +146,9 @@ class ArenaInfoProvider():
       else:
         self.enemyTeamHealth[0] += max(0, v.health)
         self.enemyTeamHealth[1] += max(0, v.maxHealth)
+
+  def getAllyVehicles(self):
+    return [v for v in self.vehicles.values() if v.team == self.playerTeam]
+  
+  def getEnemyVehicles(self):
+    return [v for v in self.vehicles.values() if v.team != self.playerTeam]

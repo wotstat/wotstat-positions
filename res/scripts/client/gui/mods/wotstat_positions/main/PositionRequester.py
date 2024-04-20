@@ -13,7 +13,7 @@ from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExeptionHandling import withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
-from .utils import shortTankType, getTankType, get_tank_role
+from .utils import shortTankType, getTankType, getTankRole
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
 from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  # noqa: F401
@@ -132,6 +132,13 @@ class PositionRequester(IPositionRequester):
       return
     self.__lastRequestTime = time
 
+    arena = self.__arenaInfoProvider
+
+    vehicles = BigWorld.player().arena.vehicles
+
+    allyVehicles = [v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getAllyVehicles()] if v]
+    enemyVehicles =[v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getEnemyVehicles()] if v]
+
     params = {
       'id': self.__battleUUID,
       'token': self.__currentToken,
@@ -144,16 +151,22 @@ class PositionRequester(IPositionRequester):
       'tank': BigWorld.entities[BigWorld.player().playerVehicleID].typeDescriptor.name,
       'level': player.vehicleTypeDescriptor.level,
       'type': shortTankType(getTankType(player.vehicleTypeDescriptor.type.tags)),
-      'role': get_tank_role(player.vehicleTypeDescriptor.role),
+      'role': getTankRole(player.vehicleTypeDescriptor.role),
       'health': max(0, float(vehicle.health) / vehicle.maxHealth),
       'position': {'x': int(player.position[0]), 'z': int(player.position[2])},
       'time': int(self.__battleTime()),
-      'allyFrags': self.__arenaInfoProvider.allyTeamFragsCount,
-      'enemyFrags': self.__arenaInfoProvider.enemyTeamFragsCount,
-      'allyHealth': self.__arenaInfoProvider.allyTeamHealth[0],
-      'enemyHealth': self.__arenaInfoProvider.enemyTeamHealth[0],
-      'allyMaxHealth': self.__arenaInfoProvider.allyTeamHealth[1],
-      'enemyMaxHealth': self.__arenaInfoProvider.enemyTeamHealth[1],
+      'allyFrags': arena.allyTeamFragsCount,
+      'enemyFrags': arena.enemyTeamFragsCount,
+      'allyHealth': arena.allyTeamHealth[0],
+      'enemyHealth': arena.enemyTeamHealth[0],
+      'allyMaxHealth': arena.allyTeamHealth[1],
+      'enemyMaxHealth': arena.enemyTeamHealth[1],
+      'allyRoles': [getTankRole(v.role) for v in allyVehicles if v],
+      'allyTypes': [shortTankType(getTankType(v.tags)) for v in allyVehicles if v],
+      'allyLevels': [v.level for v in allyVehicles if v],
+      'enemyRoles': [getTankRole(v.role) for v in enemyVehicles if v],
+      'enemyTypes': [shortTankType(getTankType(v.tags)) for v in enemyVehicles if v],
+      'enemyLevels': [v.level for v in enemyVehicles if v],
     }
 
     BigWorld.fetchURL(self.__serverUrl + '/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))

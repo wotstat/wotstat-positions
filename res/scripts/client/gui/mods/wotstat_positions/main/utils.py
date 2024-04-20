@@ -22,7 +22,7 @@ def getTankType(vehicleTags):
     else 'None'
   return res
 
-def get_tank_role(role):
+def getTankRole(role):
   return ROLE_TYPE_TO_LABEL.get(role, 'None')
 
 def mapInterval(value, fromMin, fromMax, toMin, toMax):
