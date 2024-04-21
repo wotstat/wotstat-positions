@@ -154,7 +154,7 @@ class PositionRequester(IPositionRequester):
       'role': getTankRole(player.vehicleTypeDescriptor.role),
       'health': max(0, float(vehicle.health) / vehicle.maxHealth),
       'position': {'x': int(player.position[0]), 'z': int(player.position[2])},
-      'time': int(self.__battleTime()),
+      'time': int(battleTime),
       'allyFrags': arena.allyTeamFragsCount,
       'enemyFrags': arena.enemyTeamFragsCount,
       'allyHealth': arena.allyTeamHealth[0],
