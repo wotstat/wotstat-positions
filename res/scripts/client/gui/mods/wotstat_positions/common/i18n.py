@@ -23,6 +23,8 @@ RU = {
   'settings:intervalTooltip': '{HEADER}Интервал обновления{/HEADER}{BODY}Как часто будут обновляться позиции на миникарте (в секундах)\n\n<i>По умолчанию: 30</i>{/BODY}',
   'settings:showInfoMessages': 'Отображать информационные сообщения',
   'settings:showInfoMessagesTooltip': '{HEADER}Отображение информационных сообщений{/HEADER}{BODY}Включите, чтобы отображать информационные сообщения над миникартой.{/BODY}',
+  'settings:reportHotkey': 'Отправить ошибку',
+  'settings:reportHotkeyTooltip': '{HEADER}Отправить ошибку{/HEADER}{BODY}Нажмите эту клавишу в бою, если видите некорректную позицию{/BODY}',
   'settings:reset': 'Сбросить',
   'settings:never': 'Никогда',
   'settings:onAlt': 'По нажанитю на Alt',
@@ -30,6 +32,8 @@ RU = {
   'battleMessage:showArea': 'Отображение областей',
   'battleMessage:showMiniMarkers': 'Отображение позиций',
   'battleMessage:showIdealMarker': 'Отображение наилучшего маркера',
+  'battleMessage:reportSended': 'Жалоба отправлена',
+  'battleMessage:reportSendTimeLimit': 'Жалоба уже была отправлена',
 }
 
 EN = {
@@ -53,6 +57,8 @@ EN = {
   'settings:intervalTooltip': '{HEADER}Update interval{/HEADER}{BODY}How often the positions on the minimap will be updated (in seconds)\n\n<i>Default: 30</i>{/BODY}',
   'settings:showInfoMessages': 'Display information messages',
   'settings:showInfoMessagesTooltip': '{HEADER}Display information messages{/HEADER}{BODY}Enable to display information messages above the minimap.{/BODY}',
+  'settings:reportHotkey': 'Report position',
+  'settings:reportHotkeyTooltip': '{HEADER}Report an error{/HEADER}{BODY}Press this key in battle if you see an incorrect position{/BODY}',
   'settings:reset': 'Reset',
   'settings:never': 'Never',
   'settings:onAlt': 'On Alt press',
@@ -60,6 +66,8 @@ EN = {
   'battleMessage:showArea': 'Displaying areas',
   'battleMessage:showMiniMarkers': 'Displaying positions',
   'battleMessage:showIdealMarker': 'Displaying the best marker',
+  'battleMessage:reportSended': 'Report sent',
+  'battleMessage:reportSendTimeLimit': 'Report has already been sent',
 }
 
 class I18n(Singleton):

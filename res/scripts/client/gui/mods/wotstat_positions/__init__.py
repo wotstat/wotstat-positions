@@ -48,8 +48,8 @@ class WotstatPositions(object):
     settings.setup("wotstat_positions")
 
     drawer = MarkerDrawer()
-    requseter = PositionRequester(serverUrl=self.config.get('serverURL'), drawer=drawer)
-    self.markerDrawer = LifecycleStarter(requseter)
+    self.requseter = PositionRequester(serverUrl=self.config.get('serverURL'), drawer=drawer)
+    self.markerDrawer = LifecycleStarter(self.requseter)
 
     HotKeys.instance().onCommand += self.__onCommand
 
@@ -57,6 +57,7 @@ class WotstatPositions(object):
     hotkeys.updateCommandHotkey("toggleArea", settings.get(SettingsKeys.AREA_CHANGE_KEY))
     hotkeys.updateCommandHotkey("toggleMarkers", settings.get(SettingsKeys.MARKERS_CHANGE_KEY))
     hotkeys.updateCommandHotkey("toggleIdealMarker", settings.get(SettingsKeys.IDEAL_CHANGE_KEY))
+    hotkeys.updateCommandHotkey("sendReport", settings.get(SettingsKeys.REPORT_HOTKEY))
 
     logger.debug("Hotkeys commands updated")
 
@@ -90,3 +91,6 @@ class WotstatPositions(object):
 
     if command in settingsByCommand:
       change(settingsByCommand[command])
+
+    if command == 'sendReport':
+      self.requseter.sendReport()

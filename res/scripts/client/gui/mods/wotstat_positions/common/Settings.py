@@ -23,6 +23,7 @@ class SettingsKeys:
   AREA_CHANGE_KEY = 'areaChangeKey'
   MARKERS_CHANGE_KEY = 'markersChangeKey'
   IDEAL_CHANGE_KEY = 'idealChangeKey'
+  REPORT_HOTKEY = 'reportHotkey'
   AREA_DENSITY = 'areaDensity'
   SHOW_INFO_MESSAGES = 'showInfoMessages'
 
@@ -38,7 +39,7 @@ class Settings(Singleton):
   
   defaultSettings = {
     SettingsKeys.ENABLED: True,
-    SettingsKeys.UPDATE_INTERVAL: 30,
+    SettingsKeys.UPDATE_INTERVAL: 15,
     SettingsKeys.SHOW_AREA: ShowVariants.ON_ALT,
     SettingsKeys.SHOW_MINI_MARKERS: ShowVariants.ALWAYS,
     SettingsKeys.SHOW_IDEAL_MARKER: ShowVariants.ALWAYS,
@@ -47,6 +48,7 @@ class Settings(Singleton):
     SettingsKeys.IDEAL_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_L],
     SettingsKeys.AREA_DENSITY: 65,
     SettingsKeys.SHOW_INFO_MESSAGES: True,
+    SettingsKeys.REPORT_HOTKEY: [Keys.KEY_F9],
   }
 
   settings = defaultSettings.copy()
@@ -115,6 +117,8 @@ class Settings(Singleton):
           templates.createSlider(t('settings:areaDensity'), SK.AREA_DENSITY, settings[SK.AREA_DENSITY], 
                                  SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, 5, tooltip=t('settings:areaDensityTooltip'), width=350),
           templates.createCheckbox(t('settings:showInfoMessages'), SK.SHOW_INFO_MESSAGES, settings[SK.SHOW_INFO_MESSAGES], tooltip=t('settings:showInfoMessagesTooltip')),
+          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
+          templates.createHotkey(t('settings:reportHotkey'), SK.REPORT_HOTKEY, settings[SK.REPORT_HOTKEY], tooltip=t('settings:reportHotkeyTooltip')),        
         ]
       }
 

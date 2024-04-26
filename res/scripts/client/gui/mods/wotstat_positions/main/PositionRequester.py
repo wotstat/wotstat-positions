@@ -13,6 +13,7 @@ from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExeptionHandling import withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
+from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
@@ -57,6 +58,8 @@ class PositionRequester(IPositionRequester):
     self.__battleUUID = None
     self.__currentToken = ''
 
+    self.__lastReportTime = 0
+
     wotHookEvents.PlayerAvatar_onArenaPeriodChange += self.__onArenaPeriodChange
     settings.onSettingsChanged += self.__onSettingsChanged
     InputHandler.g_instance.onKeyDown += self.__onKey
@@ -65,6 +68,7 @@ class PositionRequester(IPositionRequester):
   def start(self):
     self.__isEnable = True
     self.__lastRequestTime = 0
+    self.__lastReportTime = 0
     self.__lastResponse = None
     self.__battleUUID = str(uuid.uuid4())
 
@@ -84,6 +88,60 @@ class PositionRequester(IPositionRequester):
     self.__drawer.reset()
     if self.__callbackID is not None:
       BigWorld.cancelCallback(self.__callbackID)
+
+  @withExceptionHandling()
+  def sendReport(self):
+    if not self.__isEnable:
+      logger.debug('Request loop is not enabled')
+      return
+    
+    if not self.__lastResponse:
+      return
+        
+    player = BigWorld.player()
+
+    if player is None or not hasattr(player, 'arena'):
+      logger.debug('Player is not on arena')
+      return
+    
+    vehicle = getPlayerVehicle(player)
+    if vehicle is None:
+      logger.debug('Player vehicle is None')
+      return
+    
+    battleTime = self.__battleTime()
+    if battleTime <= -10000:
+      logger.debug('Battle is still loading')
+      return
+    
+    if BigWorld.time() - self.__lastReportTime < 10:
+      showPlayerMessage(t('battleMessage:reportSendTimeLimit'), BATTLE_MESSAGES_CONSTS.COLOR_GOLD)
+      return
+    self.__lastReportTime = BigWorld.time()
+
+
+    response = self.__lastResponse
+
+    report = {
+      'player': BigWorld.player().name,
+      'arena': player.arena.arenaType.geometry,
+      'mode': ARENA_TAGS[player.arena.bonusType],
+      'gameplay': ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16],
+      'team': player.team,
+      'vehicle': BigWorld.entities[BigWorld.player().playerVehicleID].typeDescriptor.name,
+      'responseId': response.data.get('id', ''),
+      'response': response.data
+    }
+
+    def onResponse(data):
+      if data.responseCode != 200:
+        logger.error('Report response status is not 200: %s' % data.responseCode)
+        return
+
+    BigWorld.fetchURL(self.__serverUrl + '/report', onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(report))
+
+    showPlayerMessage(t('battleMessage:reportSended'), BATTLE_MESSAGES_CONSTS.COLOR_GOLD)
+
 
   @withExceptionHandling()
   def __onSettingsChanged(self, settings):
@@ -254,13 +312,13 @@ class PositionRequester(IPositionRequester):
 
 class PositionsResponse(object):
   def __init__(self, data):
-    self.__data = data
+    self.data = data
 
   def getPoints(self):
-    if 'positions' not in self.__data:
+    if 'positions' not in self.data:
       return []
     
-    positions = self.__data['positions']
+    positions = self.data['positions']
 
     if 'points' not in positions:
       return []
@@ -269,10 +327,10 @@ class PositionsResponse(object):
     return PositionsResponse.__parsePointsList(points)
   
   def getIdealPoints(self):
-    if 'positions' not in self.__data:
+    if 'positions' not in self.data:
       return []
     
-    positions = self.__data['positions']
+    positions = self.data['positions']
 
     if 'idealPoints' not in positions:
       return []
@@ -281,10 +339,10 @@ class PositionsResponse(object):
     return PositionsResponse.__parsePointsList(points)
   
   def getPolygons(self):
-    if 'positions' not in self.__data:
+    if 'positions' not in self.data:
       return []
     
-    positions = self.__data['positions']
+    positions = self.data['positions']
 
     if 'polygons' not in positions:
       return []

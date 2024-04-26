@@ -11,7 +11,7 @@ class Config:
   config = {}
   defaultParams = {
     'lokiURL': 'https://loki.wotstat.info/loki/api/v1/push',
-    'serverURL': 'https://positions.wotstat.info/api/v1',
+    'serverURL': 'https://minimap.wotstat.info/api/v1',
     'ghURL': 'https://api.github.com/repos/WOT-STAT/minimap-positions/releases/latest',
   }
 
