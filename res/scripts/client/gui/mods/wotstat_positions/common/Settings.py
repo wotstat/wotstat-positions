@@ -18,11 +18,9 @@ class SettingsKeys:
   ENABLED = 'enabled'
   UPDATE_INTERVAL = 'updateInterval'
   SHOW_AREA = 'showArea'
-  SHOW_MINI_MARKERS = 'showMiniMarkers'
+  SHOW_MINIMAP_MARKERS = 'showMinimapMarkers'
   SHOW_IDEAL_MARKER = 'showIdealMarker'
-  AREA_CHANGE_KEY = 'areaChangeKey'
-  MARKERS_CHANGE_KEY = 'markersChangeKey'
-  IDEAL_CHANGE_KEY = 'idealChangeKey'
+  SHOW_ALL_MARKERS_3D = 'showAllMarkers3D'
   REPORT_HOTKEY = 'reportHotkey'
   AREA_DENSITY = 'areaDensity'
   SHOW_INFO_MESSAGES = 'showInfoMessages'
@@ -41,11 +39,9 @@ class Settings(Singleton):
     SettingsKeys.ENABLED: True,
     SettingsKeys.UPDATE_INTERVAL: 15,
     SettingsKeys.SHOW_AREA: ShowVariants.ON_ALT,
-    SettingsKeys.SHOW_MINI_MARKERS: ShowVariants.ALWAYS,
+    SettingsKeys.SHOW_ALL_MARKERS_3D: ShowVariants.ON_ALT,
+    SettingsKeys.SHOW_MINIMAP_MARKERS: ShowVariants.ALWAYS,
     SettingsKeys.SHOW_IDEAL_MARKER: ShowVariants.ALWAYS,
-    SettingsKeys.AREA_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_P],
-    SettingsKeys.MARKERS_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_K],
-    SettingsKeys.IDEAL_CHANGE_KEY: [Keys.KEY_LCONTROL, Keys.KEY_L],
     SettingsKeys.AREA_DENSITY: 65,
     SettingsKeys.SHOW_INFO_MESSAGES: True,
     SettingsKeys.REPORT_HOTKEY: [Keys.KEY_F9],
@@ -101,11 +97,9 @@ class Settings(Singleton):
         'enabled': True,
         'column1': [
           templates.createDropdown(t('settings:showArea'), SK.SHOW_AREA, DropdownVariants, settings[SK.SHOW_AREA], tooltip=t('settings:showAreaTooltip')),
-          templates.createDropdown(t('settings:showMiniMarkers'), SK.SHOW_MINI_MARKERS, DropdownVariants, settings[SK.SHOW_MINI_MARKERS], tooltip=t('settings:showMiniMarkersTooltip')),
+          templates.createDropdown(t('settings:showMinimapMarkers'), SK.SHOW_MINIMAP_MARKERS, DropdownVariants, settings[SK.SHOW_MINIMAP_MARKERS], tooltip=t('settings:showMinimapMarkersTooltip')),
           templates.createDropdown(t('settings:showIdealMarker'), SK.SHOW_IDEAL_MARKER, DropdownVariants, settings[SK.SHOW_IDEAL_MARKER], tooltip=t('settings:showIdealTooltip')),
-          templates.createHotkey(t('settings:areaChangeKey'), SK.AREA_CHANGE_KEY, settings[SK.AREA_CHANGE_KEY], tooltip=t('settings:areaChangeKeyTooltip')),
-          templates.createHotkey(t('settings:markersChangeKey'), SK.MARKERS_CHANGE_KEY, settings[SK.MARKERS_CHANGE_KEY], tooltip=t('settings:markersChangeKeyTooltip')),
-          templates.createHotkey(t('settings:idealChangeKey'), SK.IDEAL_CHANGE_KEY, settings[SK.IDEAL_CHANGE_KEY], tooltip=t('settings:idealChangeKeyTooltip')),
+          templates.createDropdown(t('settings:showAll3D'), SK.SHOW_ALL_MARKERS_3D, DropdownVariants, settings[SK.SHOW_ALL_MARKERS_3D], tooltip=t('settings:showAll3DTooltip')),
         ],
         'column2': [
           templates.createSlider(t('settings:interval'), SK.UPDATE_INTERVAL, settings[SK.UPDATE_INTERVAL], 5, 120, 5,
@@ -117,7 +111,7 @@ class Settings(Singleton):
           templates.createSlider(t('settings:areaDensity'), SK.AREA_DENSITY, settings[SK.AREA_DENSITY], 
                                  SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, 5, tooltip=t('settings:areaDensityTooltip'), width=350),
           templates.createCheckbox(t('settings:showInfoMessages'), SK.SHOW_INFO_MESSAGES, settings[SK.SHOW_INFO_MESSAGES], tooltip=t('settings:showInfoMessagesTooltip')),
-          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
+          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
           templates.createHotkey(t('settings:reportHotkey'), SK.REPORT_HOTKEY, settings[SK.REPORT_HOTKEY], tooltip=t('settings:reportHotkeyTooltip')),        
         ]
       }

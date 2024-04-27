@@ -4,10 +4,8 @@ from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
 from .common.ModUpdator import ModUpdator
-from .common.Settings import Settings, SettingsKeys, ShowVariants
+from .common.Settings import Settings, SettingsKeys
 from .common.HotKeys import HotKeys
-from .common.i18n import t
-from .common.BattleMessages import showPlayerMessage
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
@@ -54,43 +52,12 @@ class WotstatPositions(object):
     HotKeys.instance().onCommand += self.__onCommand
 
   def __onSettingsChanged(self, settings):
-    hotkeys.updateCommandHotkey("toggleArea", settings.get(SettingsKeys.AREA_CHANGE_KEY))
-    hotkeys.updateCommandHotkey("toggleMarkers", settings.get(SettingsKeys.MARKERS_CHANGE_KEY))
-    hotkeys.updateCommandHotkey("toggleIdealMarker", settings.get(SettingsKeys.IDEAL_CHANGE_KEY))
     hotkeys.updateCommandHotkey("sendReport", settings.get(SettingsKeys.REPORT_HOTKEY))
-
     logger.debug("Hotkeys commands updated")
 
   def __onCommand(self, command):
     if not settings.get(SettingsKeys.ENABLED): return
     if not getattr(BigWorld.player(), 'inWorld', False): return
-
-    def change(key):
-      current = settings.get(key)
-      target = {
-        ShowVariants.NEVER: ShowVariants.ON_ALT,
-        ShowVariants.ON_ALT: ShowVariants.ALWAYS,
-        ShowVariants.ALWAYS: ShowVariants.NEVER,
-      }[current]
-      settings.set(key, target)
-
-      nameByKey = {
-        ShowVariants.ON_ALT: 'settings:onAlt',
-        ShowVariants.ALWAYS: 'settings:always',
-        ShowVariants.NEVER: 'settings:never',
-      }
-
-      showPlayerMessage('%s: %s' % (t('battleMessage:%s' % key), t(nameByKey[target])))
-      logger.info('Change setting %s to %s' % (key, target))
-      
-    settingsByCommand = {
-      'toggleArea': 'showArea',
-      'toggleMarkers': 'showMiniMarkers',
-      'toggleIdealMarker': 'showIdealMarker',
-    }
-
-    if command in settingsByCommand:
-      change(settingsByCommand[command])
 
     if command == 'sendReport':
       self.requseter.sendReport()

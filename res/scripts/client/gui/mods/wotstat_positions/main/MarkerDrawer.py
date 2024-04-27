@@ -103,13 +103,16 @@ class MarkerDrawer(IPositionDrawer):
       markerMinimap = self.__createMarker(position, ENTRY_SYMBOL_NAME.NAVIGATION_POINT_MARKER, CONTAINER_NAME.ICONS)
       if markerMinimap:
         markerMinimap.setScale(1)
-
-        marker = self.__createWorldMarker(position, MARKER_SYMBOL_NAME.NAVIGATION_MARKER)
-        if marker:
-          marker.setRenderInfo(MIN_SCALE, BOUNDS, INNER_BOUNDS, CULL_DISTANCE, BOUNDS_MIN_SCALE)
-          marker.setLocationOffset(MIN_Y_OFFSET, MAX_Y_OFFSET, DISTANCE_FOR_MIN_Y_OFFSET, MAX_Y_BOOST, BOOST_START)
-          marker.setupMinimapMarker(markerMinimap)
   
+  def drawMarkers3D(self, points):
+    # type: (List[PositionPoint]) -> None
+    for point in points:
+      position = point.position
+      marker = self.__createWorldMarker(position, MARKER_SYMBOL_NAME.NAVIGATION_MARKER)
+      if marker:
+        marker.setRenderInfo(MIN_SCALE, BOUNDS, INNER_BOUNDS, CULL_DISTANCE, BOUNDS_MIN_SCALE)
+        marker.setLocationOffset(MIN_Y_OFFSET, MAX_Y_OFFSET, DISTANCE_FOR_MIN_Y_OFFSET, MAX_Y_BOOST, BOOST_START)
+
   def clear(self):
     for key, value in self.__markers.items():
       for marker in value:

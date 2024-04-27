@@ -281,11 +281,18 @@ class PositionRequester(IPositionRequester):
     if self.__shouldDraw(SettingsKeys.SHOW_AREA):
       self.__drawer.drawPolygons(response.getPolygons())
 
-    if self.__shouldDraw(SettingsKeys.SHOW_MINI_MARKERS):
+    if self.__shouldDraw(SettingsKeys.SHOW_MINIMAP_MARKERS):
       self.__drawer.drawPoints(response.getPoints())
+      self.__drawer.drawIdealPoints(response.getIdealPoints())
 
     if self.__shouldDraw(SettingsKeys.SHOW_IDEAL_MARKER):
-      self.__drawer.drawIdealPoints(response.getIdealPoints())
+      self.__drawer.drawMarkers3D(response.getIdealPoints())
+
+    if self.__shouldDraw(SettingsKeys.SHOW_ALL_MARKERS_3D):
+      self.__drawer.drawMarkers3D(response.getPoints())
+
+      if not self.__shouldDraw(SettingsKeys.SHOW_IDEAL_MARKER):
+        self.__drawer.drawMarkers3D(response.getIdealPoints())
 
   def __shouldDraw(self, key):
     variant = settings.get(key)

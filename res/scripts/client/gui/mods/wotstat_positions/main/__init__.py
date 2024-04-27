@@ -20,6 +20,10 @@ class IPositionDrawer(object):
     # type: (List[PositionPoint]) -> None
     pass
 
+  def drawMarkers3D(self, points):
+    # type: (List[PositionPoint]) -> None
+    pass
+
   def clear(self):
     pass
 
