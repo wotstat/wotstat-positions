@@ -14,4 +14,5 @@
     "BigWorldPlaceholder",
   ],
   "python.analysis.userFileIndexingLimit": 20000,
+  "cSpell.language": "en,ru",
 }

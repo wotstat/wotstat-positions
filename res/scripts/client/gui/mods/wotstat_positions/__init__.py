@@ -3,12 +3,13 @@ import BigWorld
 from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
-from .common.ModUpdator import ModUpdator
+from .common.ModUpdater import ModUpdater
 from .common.Settings import Settings, SettingsKeys
 from .common.HotKeys import HotKeys
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
+from .main.GreetingNotifier import GreetingNotifier
 
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
@@ -20,12 +21,12 @@ settings = Settings.instance()
 
 class WotstatPositions(object):
   def __init__(self):
-    logger.debug("Starting WotStatPositions")
+    logger.info("Starting WotStatPositions")
 
     self.config = Config(CONFIG_PATH)
 
     version = self.config.get("version")
-    logger.debug("Config loaded. Version: %s" % version)
+    logger.info("Config loaded. Version: %s" % version)
   
     logger.setup([
       SimpleLoggerBackend(prefix="[MOD_WOTSTAT_POS]", minLevel="INFO" if not DEBUG_MODE else "DEBUG"),
@@ -36,7 +37,7 @@ class WotstatPositions(object):
                           minLevel="INFO")
     ])
 
-    updator = ModUpdator(modName="wotstat.positions",
+    updator = ModUpdater(modName="wotstat.positions",
                          currentVersion=version,
                          ghUrl=self.config.get('ghURL'))
     updator.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
@@ -48,6 +49,8 @@ class WotstatPositions(object):
     drawer = MarkerDrawer()
     self.requseter = PositionRequester(serverUrl=self.config.get('serverURL'), drawer=drawer)
     self.markerDrawer = LifecycleStarter(self.requseter)
+    
+    GreetingNotifier(serverUrl=self.config.get('serverURL'))
 
     HotKeys.instance().onCommand += self.__onCommand
 

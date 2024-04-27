@@ -29,7 +29,7 @@ class UpdateStatus:
   SKIP_BY_CANARY = 'SKIP_BY_CANARY'
   UPDATED = 'UPDATED'
 
-class ModUpdator(object):
+class ModUpdater(object):
 
   def __init__(self, modName, currentVersion, ghUrl):
     self.modName = modName
@@ -60,7 +60,7 @@ class ModUpdator(object):
 
   def updateToGitHubReleases(self, onComplete=None):
 
-    def onCompleateInvoke(status):
+    def onCompleteInvoke(status):
       if onComplete:
         onComplete(status)
     
@@ -69,7 +69,7 @@ class ModUpdator(object):
       # type: (str, BigWorld.WGUrlResponse) -> None
       if data.responseCode != 200:
         logger.error('GH Update. Download response status is not 200: %s' % data.status)
-        return onCompleateInvoke(UpdateStatus.NOT_OK_RESPONSE)
+        return onCompleteInvoke(UpdateStatus.NOT_OK_RESPONSE)
         
       
       gameVersion = _numeticVersion()
@@ -78,7 +78,7 @@ class ModUpdator(object):
         with open(newModPath, "wb") as f:
           f.write(data.body)
 
-      onCompleateInvoke(UpdateStatus.UPDATED)
+      onCompleteInvoke(UpdateStatus.UPDATED)
 
     @withExceptionHandling()
     def onResponse(data):
@@ -86,7 +86,7 @@ class ModUpdator(object):
       
       if data.responseCode != 200:
         logger.error('GH Update. Response status is not 200: %s' % data.responseCode)
-        return onCompleateInvoke(UpdateStatus.NOT_OK_RESPONSE)
+        return onCompleteInvoke(UpdateStatus.NOT_OK_RESPONSE)
       
       parsed = json.loads(data.body)
       latestVersion = parsed['tag_name']
@@ -94,7 +94,7 @@ class ModUpdator(object):
 
       if latestVersion == self.currentVersion:
         logger.debug('GH Update. Already up to date')
-        return onCompleateInvoke(UpdateStatus.ALREADY_UP_TO_DATE)
+        return onCompleteInvoke(UpdateStatus.ALREADY_UP_TO_DATE)
       
       match = re.search('`canary_upgrade=(\d+.\d+|\d+)?`', parsed['body'])
       numCanaryUpgrade = float(match.group(1)) if match else None
@@ -112,7 +112,7 @@ class ModUpdator(object):
         logger.info('GH Update. Update canary fraction today: %s; RND=%s' % (update_fraction_today, rnd))
 
         if rnd > update_fraction_today:
-          return onCompleateInvoke(UpdateStatus.SKIP_BY_CANARY)
+          return onCompleteInvoke(UpdateStatus.SKIP_BY_CANARY)
 
       else:
         logger.error('GH Update. Can not parse canary_upgrade in release notes')
@@ -121,13 +121,13 @@ class ModUpdator(object):
       asset = filter(lambda x: ('name' in x) and (x['name'] == 'wotstat.positions_' + latestVersion + '.wotmod'), assets)
       if not len(asset) > 0:
         logger.error('GH Update. Can not find asset for version: %s' % latestVersion)
-        return onCompleateInvoke(UpdateStatus.BAD_INFO)
+        return onCompleteInvoke(UpdateStatus.BAD_INFO)
         
 
       firstAsset = asset[0]
       if 'browser_download_url' not in firstAsset:
         logger.error('GH Update. Can not find browser_download_url in asset')
-        return onCompleateInvoke(UpdateStatus.BAD_INFO)
+        return onCompleteInvoke(UpdateStatus.BAD_INFO)
         
       downloadUrl = firstAsset['browser_download_url']
       logger.info('GH Update. Download url: %s' % downloadUrl)

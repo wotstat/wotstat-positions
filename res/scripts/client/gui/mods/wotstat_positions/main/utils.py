@@ -1,4 +1,3 @@
-
 from constants import ROLE_TYPE_TO_LABEL
 
 def shortTankType(tag):
@@ -10,7 +9,6 @@ def shortTankType(tag):
     'SPG': 'SPG',
   }
   return tags[tag] if tag in tags else tag
-
 
 def getTankType(vehicleTags):
   tags = vehicleTags

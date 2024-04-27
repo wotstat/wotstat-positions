@@ -231,7 +231,10 @@ class PositionRequester(IPositionRequester):
 
   @withExceptionHandling()
   def __onResponse(self, data):
-    
+    if data.responseCode != 200:
+      logger.error('Response status is not 200: %s' % data.responseCode)
+      return
+
     body = data.body
     if not body:
       logger.error('Response body is empty')
@@ -261,10 +264,6 @@ class PositionRequester(IPositionRequester):
 
     if 'token' in parsed:
       self.__currentToken = parsed['token']
-    
-    if data.responseCode != 200:
-      logger.error('Response status is not 200: %s' % data.responseCode)
-      return
 
     self.__lastResponse = PositionsResponse(parsed)
     self.__redraw()

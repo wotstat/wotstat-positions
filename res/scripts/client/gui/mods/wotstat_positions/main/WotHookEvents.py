@@ -10,20 +10,22 @@ from ..common.OverrideLib import g_overrideLib
 
 
 class WotHookEvents:
-  __connectionMgr = dependency.descriptor(IConnectionManager)
-  __hangarSpace = dependency.descriptor(IHangarSpace)
+  __connectionMgr = dependency.descriptor(IConnectionManager) # type: IConnectionManager
+  __hangarSpace = dependency.descriptor(IHangarSpace) # type: IHangarSpace
 
   def __init__(self):
     # DI
     self.__connectionMgr.onConnected += self.__onConnected
     self.__connectionMgr.onLoggedOn += self.__onLoggedOn
     self.__hangarSpace.onSpaceCreate += self.__onHangarSpaceCreate
+    self.__hangarSpace.onSpaceDestroy += self.__onHangarSpaceDestroy
 
     self.listeners = {}
     
     self.onConnected = SendExceptionEvent()
     self.onLoggedOn = SendExceptionEvent()
     self.onHangarLoaded = SendExceptionEvent()
+    self.onHangarDestroyed = SendExceptionEvent()
     self.Avatar_onBecomePlayer = SendExceptionEvent()
     self.Avatar_onBecomeNonPlayer = SendExceptionEvent()
     self.Vehicle_onEnterWorld = SendExceptionEvent()
@@ -38,6 +40,9 @@ class WotHookEvents:
 
   def __onHangarSpaceCreate(self):
     self.onHangarLoaded()
+
+  def __onHangarSpaceDestroy(self, data):
+    self.onHangarDestroyed(data)
 
 
 wotHookEvents = WotHookEvents()
