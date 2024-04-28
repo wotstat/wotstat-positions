@@ -6,6 +6,7 @@ from .common.Config import Config
 from .common.ModUpdater import ModUpdater
 from .common.Settings import Settings, SettingsKeys
 from .common.HotKeys import HotKeys
+from .common.PlayerPrefs import PlayerPrefs
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
@@ -14,6 +15,9 @@ from .main.GreetingNotifier import GreetingNotifier
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
 CONFIG_PATH = './mods/configs/wotstat.positions/config.cfg'
+
+class PlayerPrefsKeys:
+  LAST_VERSION = 'lastVersion'
 
 logger = Logger.instance()
 hotkeys = HotKeys.instance()
@@ -51,6 +55,8 @@ class WotstatPositions(object):
     self.markerDrawer = LifecycleStarter(self.requseter)
     
     GreetingNotifier(serverUrl=self.config.get('serverURL'))
+
+    PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 
     HotKeys.instance().onCommand += self.__onCommand
 
