@@ -227,7 +227,7 @@ class PositionRequester(IPositionRequester):
       'enemyLevels': [v.level for v in enemyVehicles if v],
     }
 
-    BigWorld.fetchURL(self.__serverUrl + '/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
+    BigWorld.fetchURL(self.__serverUrl + '/api/v1/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
 
   @withExceptionHandling()
   def __onResponse(self, data):

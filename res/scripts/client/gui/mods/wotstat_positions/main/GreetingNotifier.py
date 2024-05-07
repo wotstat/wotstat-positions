@@ -16,16 +16,20 @@ LANGUAGE = getClientLanguage()
 logger = Logger.instance()
 notifier = Notifier.instance()
 
+POSITION_WOTSTAT_EVENT_LICENSE = 'POSITION_WOTSTAT_EVENT_LICENSE'
 
 class GreetingNotifier():
 
-  def __init__(self, serverUrl):
+  def __init__(self, serverUrl, activator):
     self.__waitForHangar = False
     self.__isFirstHangarLoad = True
     self.__serverUrl = serverUrl
+    self.__licenseActivator = activator
 
     wotHookEvents.onLoggedOn += self.__onLoggedOn
     wotHookEvents.onHangarLoaded += self.__onHangarLoaded
+
+    notifier.onEvent += self.__onEventClicked
 
   def __onLoggedOn(self, data):
     self.__waitForHangar = True
@@ -88,6 +92,10 @@ class GreetingNotifier():
                               message.get('messageData', None),
                               message.get('savedData', None))
     
+  def __onEventClicked(self, event):
+    if event.startswith(POSITION_WOTSTAT_EVENT_LICENSE):
+      logger.info('Opening license')
+      self.__licenseActivator.request()
     
   # При первом открытии игры
   def __firstGameOpenGreeting(self):
@@ -98,7 +106,7 @@ class GreetingNotifier():
   def __gameOpenGreeting(self):
     logger.debug('Requesting greeting message')
     visibleKey = 'lastVisibleGreeting'
-    url = '/greeting?' + self.__getQueryPostfix(visibleKey)
+    url = '/api/v1/greeting?' + self.__getQueryPostfix(visibleKey)
     BigWorld.fetchURL(self.__serverUrl + url, partial(self.__messageResponse, visibleKey), method='GET')
 
   # При каждом выходе в ангар 

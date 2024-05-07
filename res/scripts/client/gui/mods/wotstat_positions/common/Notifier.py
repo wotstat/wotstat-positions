@@ -6,12 +6,13 @@ from gui import SystemMessages
 from notification.actions_handlers import NotificationsActionsHandlers
 
 from .Logger import Logger
-from .ExeptionHandling import withExceptionHandling
+from .ExeptionHandling import withExceptionHandling, SendExceptionEvent
 from ..main.WotHookEvents import wotHookEvents
 
 logger = Logger.instance()
 
-OPEN_POSITION_WOTSTAT_EVENT = 'OPEN_POSITION_WOTSTAT_EVENT:'
+POSITION_WOTSTAT_EVENT_PREFIX = 'POSITION_WOTSTAT_EVENT'
+POSITION_WOTSTAT_EVENT_OPEN_URL = 'POSITION_WOTSTAT_EVENT_OPEN_URL:'
 
 class Notifier(Singleton):
 
@@ -23,6 +24,8 @@ class Notifier(Singleton):
   __showTimer = None
   __notificationQueue = [] # type: List[Tuple[str, SystemMessages.SM_TYPE, str, any, any]]
   
+  onEvent = SendExceptionEvent()
+  
   def _singleton_init(self):
     wotHookEvents.onHangarLoaded += self.__onHangarLoaded
     wotHookEvents.onHangarDestroyed += self.__onHangarDestroyed
@@ -33,10 +36,13 @@ class Notifier(Singleton):
   @withExceptionHandling()
   def events_handleAction(self, obj, model, typeID, entityID, actionName):
     try:
-      if actionName.startswith(OPEN_POSITION_WOTSTAT_EVENT):
-        target = actionName.split(OPEN_POSITION_WOTSTAT_EVENT)[1]
+      if actionName.startswith(POSITION_WOTSTAT_EVENT_OPEN_URL):
+        target = actionName.split(POSITION_WOTSTAT_EVENT_OPEN_URL)[1]
         logger.info('Opening personal wotstat for %s' % target)
         BigWorld.wg_openWebBrowser(target)
+      elif actionName.startswith(POSITION_WOTSTAT_EVENT_PREFIX):
+        self.onEvent(actionName)
+        logger.info('Event %s' % actionName)
       else:
         self.old_handleAction(obj, model, typeID, entityID, actionName)
     except:

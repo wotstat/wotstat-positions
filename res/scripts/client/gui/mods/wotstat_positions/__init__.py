@@ -11,6 +11,8 @@ from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
 from .main.GreetingNotifier import GreetingNotifier
+from .main.LicenseActivator import LicenseActivator
+
 
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
@@ -51,10 +53,11 @@ class WotstatPositions(object):
     settings.setup("wotstat_positions")
 
     drawer = MarkerDrawer()
-    self.requseter = PositionRequester(serverUrl=self.config.get('serverURL'), drawer=drawer)
+    self.requseter = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer)
     self.markerDrawer = LifecycleStarter(self.requseter)
     
-    GreetingNotifier(serverUrl=self.config.get('serverURL'))
+    licenseActivator = LicenseActivator(self.config.get('baseURL'))
+    GreetingNotifier(serverUrl=self.config.get('baseURL'), activator=licenseActivator)
 
     PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 
