@@ -6,7 +6,7 @@ from helpers import dependency
 from skeletons.gui.battle_session import IBattleSessionProvider
 
 from ..common.Logger import Logger
-from ..common.ExeptionHandling import withExceptionHandling
+from ..common.ExceptionHandling import withExceptionHandling
 from .WotHookEvents import wotHookEvents
 
 

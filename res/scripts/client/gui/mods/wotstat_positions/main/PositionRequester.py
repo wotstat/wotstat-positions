@@ -11,7 +11,7 @@ import Keys
 
 from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
-from ..common.ExeptionHandling import withExceptionHandling
+from ..common.ExceptionHandling import withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
 from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole

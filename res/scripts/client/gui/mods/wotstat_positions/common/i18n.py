@@ -30,6 +30,8 @@ RU = {
   'battleMessage:showIdealMarker': 'Отображение наилучшего маркера',
   'battleMessage:reportSended': 'Жалоба отправлена',
   'battleMessage:reportSendTimeLimit': 'Жалоба уже была отправлена',
+  'hangarMessage:cannotResetFileLicense': 'Файловая лицензия не может быть сброшена. Пожалуйста, удалите файл лицензии вручную',
+  'hangarMessage:licenseReset': 'Персональная лицензия сброшена',
 }
 
 EN = {
@@ -60,6 +62,8 @@ EN = {
   'battleMessage:showIdealMarker': 'Displaying the best marker',
   'battleMessage:reportSended': 'Report sent',
   'battleMessage:reportSendTimeLimit': 'Report has already been sent',
+  'hangarMessage:cannotResetFileLicense': 'File license cannot be reset. Please delete the license file manually',
+  'hangarMessage:licenseReset': 'Personal license reset',
 }
 
 class I18n(Singleton):

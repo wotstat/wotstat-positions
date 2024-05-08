@@ -9,7 +9,7 @@ import BigWorld
 from helpers import getShortClientVersion
 
 from .Logger import Logger
-from .ExeptionHandling import withExceptionHandling
+from .ExceptionHandling import withExceptionHandling
 
 GH_HEADERS = {
   'X-GitHub-Api-Version': '2022-11-28',

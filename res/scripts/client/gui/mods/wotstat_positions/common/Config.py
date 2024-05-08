@@ -21,17 +21,17 @@ class Config:
 
     self.config = self.defaultParams.copy()
 
-    if os.path.exists(configPath):
-      with open(configPath, "r") as f:
-        try:
+    try:
+      if os.path.exists(configPath):
+        with open(configPath, "r") as f:
           str = f.read()
           logger.debug('Found new config:\n%s' % str)
           parsed = json.loads(str)
           logger.debug('Parse new config:\n%s' % parsed)
           self.config.update(parsed)
           logger.info('Updated config:\n%s' % self.config)
-        except Exception as e:
-          logger.error('Load config error %s' % e)
+    except Exception as e:
+      logger.error('Load config error %s' % e)
     
     self.config['version'] = VERSION
 

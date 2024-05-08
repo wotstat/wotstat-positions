@@ -5,7 +5,7 @@ from helpers import dependency
 from skeletons.connection_mgr import IConnectionManager
 from skeletons.gui.shared.utils import IHangarSpace
 
-from ..common.ExeptionHandling import SendExceptionEvent
+from ..common.ExceptionHandling import SendExceptionEvent
 from ..common.OverrideLib import g_overrideLib
 
 

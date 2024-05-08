@@ -1,7 +1,7 @@
 import Keys
 from Singleton import Singleton
 
-from .ExeptionHandling import SendExceptionEvent
+from .ExceptionHandling import SendExceptionEvent
 from .Logger import Logger
 from .i18n import t
 

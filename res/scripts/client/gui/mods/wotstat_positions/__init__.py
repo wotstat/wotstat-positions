@@ -7,16 +7,18 @@ from .common.ModUpdater import ModUpdater
 from .common.Settings import Settings, SettingsKeys
 from .common.HotKeys import HotKeys
 from .common.PlayerPrefs import PlayerPrefs
+from .common.ExceptionHandling import withExceptionHandling
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester
 from .main.MarkerDrawer import MarkerDrawer
 from .main.GreetingNotifier import GreetingNotifier
-from .main.LicenseActivator import LicenseActivator
+from .main.LicenseManager import LicenseManager
 
 
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
 CONFIG_PATH = './mods/configs/wotstat.positions/config.cfg'
+LICENSE_FILE_PATH = './mods/wotstat.positions.license'
 
 class PlayerPrefsKeys:
   LAST_VERSION = 'lastVersion'
@@ -26,6 +28,8 @@ hotkeys = HotKeys.instance()
 settings = Settings.instance()
 
 class WotstatPositions(object):
+
+  @withExceptionHandling()
   def __init__(self):
     logger.info("Starting WotStatPositions")
 
@@ -56,8 +60,8 @@ class WotstatPositions(object):
     self.requseter = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer)
     self.markerDrawer = LifecycleStarter(self.requseter)
     
-    licenseActivator = LicenseActivator(self.config.get('baseURL'))
-    GreetingNotifier(serverUrl=self.config.get('baseURL'), activator=licenseActivator)
+    licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
+    GreetingNotifier(self.config.get('baseURL'), licenseManager)
 
     PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 

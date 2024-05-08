@@ -6,7 +6,7 @@ from gui import SystemMessages
 from notification.actions_handlers import NotificationsActionsHandlers
 
 from .Logger import Logger
-from .ExeptionHandling import withExceptionHandling, SendExceptionEvent
+from .ExceptionHandling import withExceptionHandling, SendExceptionEvent
 from ..main.WotHookEvents import wotHookEvents
 
 logger = Logger.instance()

@@ -5,7 +5,7 @@ from Singleton import Singleton
 from gui import InputHandler
 import Keys
 
-from .ExeptionHandling import SendExceptionEvent
+from .ExceptionHandling import SendExceptionEvent
 
 class SPECIAL_KEYS:
 	KEY_ALT, KEY_CONTROL, KEY_SHIFT = range(-1, -4, -1)
