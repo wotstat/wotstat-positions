@@ -26,12 +26,7 @@ class LicenseActivator(object):
   def request(self):
     logger.info("Requesting license with: %s" % self.uuid)
 
-    if self.client:
-      try:
-        self.client.close()
-      except:
-        pass
-    else:
+    if not self.client:
       self.client = websocket.Client()
       listener = self.client.listener # type: websocket.Listener
       listener.onOpened += self.__onWebsocketOpened
@@ -40,7 +35,8 @@ class LicenseActivator(object):
 
     BigWorld.wg_openWebBrowser(self.__activatorPage + self.uuid)
     targetUrl = '%s/%s?language=%s' % (self.__wsUrl, self.uuid, LANGUAGE)
-    self.client.open(targetUrl, reconnect=True)
+    if self.client.status != websocket.ConnectionStatus.Opened or self.client.status != websocket.ConnectionStatus.Opening:
+      self.client.open(targetUrl, reconnect=True)
 
 
   def __onWebsocketOpened(self, server):
@@ -52,26 +48,25 @@ class LicenseActivator(object):
   def __onWebsocketMessage(self, code, payload):
     logger.info('onWebsocketMessage %s %s' % (str(code), str(payload)))
     if code == websocket.OpCode.Text:
-      if payload.startswith('JSON:'):
-        try:
-          data = json.loads(payload.split('JSON:')[1])
-          key = data.get('key', None)
-          if key:
-            logger.info('Set key: %s' % key)
+      try:
+        data = json.loads(payload)
+        key = data.get('key', None)
+        if key:
+          logger.info('Set key: %s' % key)
 
-            self.client.sendText('ACTIVATED')
-            self.client.close()
-            self.uuid = str(uuid.uuid4())
-            
-  
-          message = data.get('message', None)
-          if message and message.get('text', None):
-            notifier.showNotification(message.get('text'), 
-                          SystemMessages.SM_TYPE.of(message.get('type', 'Information')),
-                          message.get('priority', None),
-                          message.get('messageData', None),
-                          message.get('savedData', None))
+          self.client.sendText('ACTIVATED')
+          self.client.close()
+          self.uuid = str(uuid.uuid4())
+          
 
-        except:
-          logger.error('Failed to parse JSON from payload %s' % payload)
+        message = data.get('message', None)
+        if message and message.get('text', None):
+          notifier.showNotification(message.get('text'), 
+                        SystemMessages.SM_TYPE.of(message.get('type', 'Information')),
+                        message.get('priority', None),
+                        message.get('messageData', None),
+                        message.get('savedData', None))
+
+      except:
+        logger.error('Failed to parse JSON from payload %s' % payload)
       
