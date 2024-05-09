@@ -84,11 +84,7 @@ class GreetingNotifier():
     message = parsed.get('message', None)
     if message:
       if 'text' in message:
-        notifier.showNotification(message['text'], 
-                                  SystemMessages.SM_TYPE.of(message.get('type', 'Information')),
-                                  message.get('priority', None),
-                                  message.get('messageData', None),
-                                  message.get('savedData', None))
+        notifier.showNotificationFromData(message)
       else:
         logger.error('Message text is not found in response: %s' % parsed)
   

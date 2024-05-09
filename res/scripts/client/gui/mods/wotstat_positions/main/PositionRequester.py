@@ -13,11 +13,19 @@ from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
 from ..common.ExceptionHandling import withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
+from ..common.Notifier import Notifier
 from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
-from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea  # noqa: F401
+from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea, LicenseManager  # noqa: F401
+
+class Commands:
+  PAUSE_REQUESTER = 'PAUSE_REQUESTER'
+  RESUME_REQUESTER = 'RESUME_REQUESTER'
+  SKIP_REDRAW = 'SKIP_REDRAW'
+  RESET_DRAWER = 'RESET_DRAWER'
+
 
 logger = Logger.instance()
 settings = Settings.instance()
@@ -40,9 +48,8 @@ def getPlayerVehicle(player=BigWorld.player()):
 
 class PositionRequester(IPositionRequester):
 
-
-  def __init__(self, serverUrl, drawer):
-    # type: (str, IPositionDrawer) -> None
+  def __init__(self, serverUrl, drawer, licenseManager):
+    # type: (str, IPositionDrawer, LicenseManager.LicenseManager) -> None
 
     self.__drawer = drawer
     self.__serverUrl = serverUrl
@@ -52,11 +59,12 @@ class PositionRequester(IPositionRequester):
 
     self.__callbackID = None
     self.__isEnable = False
+    self.__isPaused = False
     self.__lastResponse = None # type: PositionsResponse
     self.__altPressed = False
 
     self.__battleUUID = None
-    self.__currentToken = ''
+    self.__licenseManager = licenseManager
 
     self.__lastReportTime = 0
 
@@ -67,10 +75,16 @@ class PositionRequester(IPositionRequester):
       
   def start(self):
     self.__isEnable = True
+    self.__isPaused = False
     self.__lastRequestTime = 0
     self.__lastReportTime = 0
     self.__lastResponse = None
     self.__battleUUID = str(uuid.uuid4())
+    self.__licenseCache = self.__licenseManager.getLicense()
+
+    if not self.__licenseCache:
+      logger.debug('License is not found')
+      return
 
     player = BigWorld.player()
     if hasattr(player, 'arena'):
@@ -157,11 +171,17 @@ class PositionRequester(IPositionRequester):
 
   @withExceptionHandling()
   def __requestLoop(self):
+    self.__callbackID = None
+
     if not self.__isEnable:
       logger.debug('Request loop is not enabled')
       return
     
     self.__callbackID = BigWorld.callback(1, self.__requestLoop)
+
+    if self.__isPaused:
+      logger.debug('Request loop is paused')
+      return
 
     player = BigWorld.player()
 
@@ -199,7 +219,8 @@ class PositionRequester(IPositionRequester):
 
     params = {
       'id': self.__battleUUID,
-      'token': self.__currentToken,
+      'token': self.__licenseManager.getToken(),
+      'license': self.__licenseCache,
       'language': LANGUAGE,
       'region': AUTH_REALM,
       'mode': ARENA_TAGS[player.arena.bonusType],
@@ -247,8 +268,11 @@ class PositionRequester(IPositionRequester):
       logger.error('Response body is not a valid JSON: %s' % body)
       return
     
+    token = parsed.get('token', None)
+    if token is not None: 
+      self.__licenseManager.setToken(token)
+    
     message = parsed.get('message', None)
-
     if message is not None:
       mType = message.get('type', None)
       mValue = message.get('value', None)
@@ -262,11 +286,29 @@ class PositionRequester(IPositionRequester):
       if mType != 'info' or settings.get(SettingsKeys.SHOW_INFO_MESSAGES):
         showPlayerMessage(mValue, color)
 
-    if 'token' in parsed:
-      self.__currentToken = parsed['token']
+    notification = parsed.get('notification', None)
+    if notification is not None:
+      Notifier.instance().showNotificationFromData(notification)
 
-    self.__lastResponse = PositionsResponse(parsed)
-    self.__redraw()
+
+    skipRedraw = False
+    commands = parsed.get('commands', None)
+    if commands is not None:
+      if isinstance(commands, list):
+        for c in commands:
+          if c == Commands.PAUSE_REQUESTER:
+            self.__isPaused = True
+          elif c == Commands.RESUME_REQUESTER:
+            self.__isPaused = False
+          elif c == Commands.SKIP_REDRAW:
+            skipRedraw = True
+          elif c == Commands.RESET_DRAWER:
+            self.__drawer.reset()
+
+    if not skipRedraw:
+      self.__lastResponse = PositionsResponse(parsed)
+      self.__redraw()
+
   
   def __redraw(self):
     self.__drawer.clear()

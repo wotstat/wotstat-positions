@@ -12,6 +12,7 @@ from ..common.PlayerPrefs import PlayerPrefs
 
 
 LICENSE_PLAYER_PREFS_KEY = 'license'
+TOKEN_PLAYER_PREFS_KEY = 'token'
 
 LANGUAGE = getClientLanguage()
 
@@ -32,7 +33,10 @@ class LicenseManager(object):
 
   def __init__(self, url, licenseFilePath):
     self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
-    self.__activatorPage = '%s/request-licence-key?requestId=' % url
+    if LANGUAGE != 'ru':
+      self.__activatorPage = '%s/en/request-licence-key?requestId=' % url
+    else:
+      self.__activatorPage = '%s/request-licence-key?requestId=' % url
 
     try:
       with open(licenseFilePath, "r") as f:
@@ -81,6 +85,13 @@ class LicenseManager(object):
 
   def resetLicense(self):
     PlayerPrefs.delete(LICENSE_PLAYER_PREFS_KEY)
+    PlayerPrefs.delete(TOKEN_PLAYER_PREFS_KEY)
+
+  def getToken(self):
+    return PlayerPrefs.get(TOKEN_PLAYER_PREFS_KEY, '')
+  
+  def setToken(self, token):
+    PlayerPrefs.set(TOKEN_PLAYER_PREFS_KEY, token)
 
   def __onWebsocketOpened(self, server):
     logger.info('onWebsocketOpened')
@@ -107,11 +118,7 @@ class LicenseManager(object):
 
         message = data.get('message', None)
         if message and message.get('text', None):
-          notifier.showNotification(message.get('text'), 
-                        SystemMessages.SM_TYPE.of(message.get('type', 'Information')),
-                        message.get('priority', None),
-                        message.get('messageData', None),
-                        message.get('savedData', None))
+          notifier.showNotificationFromData(message)
 
       except:
         logger.error('Failed to parse JSON from payload %s' % payload)
@@ -119,7 +126,7 @@ class LicenseManager(object):
       logger.info('onWebsocketMessage %s %s' % (str(code), str(payload)))
 
   def __getPredefinedLicense(self):
-    return 'TEST'
+    return None
   
   @staticmethod
   def obfuscate(license):

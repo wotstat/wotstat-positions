@@ -59,6 +59,18 @@ class Notifier(Singleton):
     else:
       self.__notificationQueue.append((text, type, priority, messageData, savedData))
 
+  @withExceptionHandling()
+  def showNotificationFromData(self, message):
+    # type: (dict) -> None
+  
+    text = message.get('text', None)
+    if text is None: return
+
+    self.showNotification(text, 
+                  SystemMessages.SM_TYPE.of(message.get('type', 'Information')),
+                  message.get('priority', None),
+                  message.get('messageData', None),
+                  message.get('savedData', None))
 
   def __onHangarLoaded(self):
     if self.__isHangarLoaded: return

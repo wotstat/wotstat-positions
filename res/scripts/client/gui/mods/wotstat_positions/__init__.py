@@ -56,13 +56,13 @@ class WotstatPositions(object):
     settings.onSettingsChanged += self.__onSettingsChanged
     settings.setup("wotstat_positions")
 
+    licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
+
     drawer = MarkerDrawer()
-    self.requseter = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer)
+    self.requseter = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer, licenseManager=licenseManager)
     self.markerDrawer = LifecycleStarter(self.requseter)
     
-    licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
     GreetingNotifier(self.config.get('baseURL'), licenseManager)
-
     PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 
     HotKeys.instance().onCommand += self.__onCommand

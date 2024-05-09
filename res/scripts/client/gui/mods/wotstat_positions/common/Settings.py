@@ -37,7 +37,7 @@ class Settings(Singleton):
   
   defaultSettings = {
     SettingsKeys.ENABLED: True,
-    SettingsKeys.UPDATE_INTERVAL: 15,
+    SettingsKeys.UPDATE_INTERVAL: 25,
     SettingsKeys.SHOW_AREA: ShowVariants.ON_ALT,
     SettingsKeys.SHOW_ALL_MARKERS_3D: ShowVariants.ON_ALT,
     SettingsKeys.SHOW_MINIMAP_MARKERS: ShowVariants.ALWAYS,
