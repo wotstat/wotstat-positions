@@ -99,6 +99,7 @@ class PositionRequester(IPositionRequester):
     self.__drawer.reset()
     if self.__callbackID is not None:
       BigWorld.cancelCallback(self.__callbackID)
+      self.__callbackID = None
 
   @withExceptionHandling()
   def sendReport(self):
