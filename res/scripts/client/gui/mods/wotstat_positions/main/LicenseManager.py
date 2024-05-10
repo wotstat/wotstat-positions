@@ -8,6 +8,7 @@ from helpers import getClientLanguage
 from ..common.Logger import Logger
 from ..common.Notifier import Notifier
 from ..common.PlayerPrefs import PlayerPrefs
+from ..common.ExceptionHandling import withExceptionHandling
 from ..constants import PlayerPrefsKeys
 
 LANGUAGE = getClientLanguage()
@@ -27,6 +28,7 @@ class LicenseManager(object):
   __client = None
   __fileLicense = None
   __blocked = False
+  __heartbeatTimer = None
 
   def __init__(self, url, licenseFilePath):
     self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
@@ -42,6 +44,10 @@ class LicenseManager(object):
     except Exception as e:
       pass
 
+  def __targetWSUrl(self):
+    return '%s/%s?language=%s' % (self.__wsUrl, self.__uuid, LANGUAGE)
+  
+  @withExceptionHandling()
   def request(self):
     logger.info("Requesting license with: %s" % self.__uuid)
 
@@ -50,12 +56,12 @@ class LicenseManager(object):
       listener = self.__client.listener # type: websocket.Listener
       listener.onOpened += self.__onWebsocketOpened
       listener.onClosed += self.__onWebsocketClosed
+      listener.onFailed += self.__onWebsocketFailed
       listener.onMessage += self.__onWebsocketMessage
 
     BigWorld.wg_openWebBrowser(self.__activatorPage + self.__uuid)
-    targetUrl = '%s/%s?language=%s' % (self.__wsUrl, self.__uuid, LANGUAGE)
     if self.__client.status != websocket.ConnectionStatus.Opened and self.__client.status != websocket.ConnectionStatus.Opening:
-      self.__client.open(targetUrl, reconnect=True)
+      self.__client.open(self.__targetWSUrl())
 
   def getLicense(self):
     if self.__fileLicense: return self.__fileLicense
@@ -101,13 +107,26 @@ class LicenseManager(object):
   def setToken(self, token):
     PlayerPrefs.set(PlayerPrefsKeys.TOKEN, token)
 
+  @withExceptionHandling()
   def __onWebsocketOpened(self, server):
     logger.info('onWebsocketOpened')
+    if self.__heartbeatTimer is not None:
+      BigWorld.cancelCallback(self.__heartbeatTimer)
+      self.__heartbeatTimer = None
+    self.__heartbeatLoop()
     
+  @withExceptionHandling()
+  def __onWebsocketFailed(self, server, code, reason):
+    logger.info('onWebsocketFailed %s %s %s' % (str(server), str(code), str(reason)))
+
+  @withExceptionHandling()
   def __onWebsocketClosed(self, server, code, reason):
     logger.info('onWebsocketClosed %s %s %s' % (str(server), str(code), str(reason)))
 
+  @withExceptionHandling()
   def __onWebsocketMessage(self, code, payload):
+    if payload == 'PONG': return
+
     if code == websocket.OpCode.Text:
       try:
         data = json.loads(payload)
@@ -136,6 +155,13 @@ class LicenseManager(object):
         logger.error('Failed to parse JSON from payload %s' % payload)
     else:
       logger.info('onWebsocketMessage %s %s' % (str(code), str(payload)))
+
+  @withExceptionHandling()
+  def __heartbeatLoop(self):
+    self.__heartbeatTimer = BigWorld.callback(5, self.__heartbeatLoop)
+
+    if self.__client and self.__client.status == websocket.ConnectionStatus.Opened:
+      self.__client.sendText('PING')
 
   def __getPredefinedLicense(self):
     return None
