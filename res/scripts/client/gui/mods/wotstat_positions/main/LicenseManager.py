@@ -4,15 +4,11 @@ import json
 
 import BigWorld
 from helpers import getClientLanguage
-from gui import SystemMessages
 
 from ..common.Logger import Logger
 from ..common.Notifier import Notifier
 from ..common.PlayerPrefs import PlayerPrefs
-
-
-LICENSE_PLAYER_PREFS_KEY = 'license'
-TOKEN_PLAYER_PREFS_KEY = 'token'
+from ..constants import PlayerPrefsKeys
 
 LANGUAGE = getClientLanguage()
 
@@ -30,6 +26,7 @@ class LicenseManager(object):
   __uuid = str(uuid.uuid4())
   __client = None
   __fileLicense = None
+  __blocked = False
 
   def __init__(self, url, licenseFilePath):
     self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
@@ -63,7 +60,7 @@ class LicenseManager(object):
   def getLicense(self):
     if self.__fileLicense: return self.__fileLicense
 
-    license = PlayerPrefs.get(LICENSE_PLAYER_PREFS_KEY, None)
+    license = PlayerPrefs.get(PlayerPrefsKeys.LICENSE, None)
     if license: return license
 
     predefined = self.__getPredefinedLicense()
@@ -71,27 +68,38 @@ class LicenseManager(object):
 
     return None
   
+  def hasLicense(self):
+    return bool(self.getLicense())
+  
+  def isBlocked(self):
+    return self.__blocked
+
   def getLicenseType(self):
     # type: () -> LicenseType
 
     if self.__fileLicense: return LicenseType.FILE
-    if PlayerPrefs.get(LICENSE_PLAYER_PREFS_KEY, None): return LicenseType.NORMAL
+    if PlayerPrefs.get(PlayerPrefsKeys.LICENSE, None): return LicenseType.NORMAL
     if self.__getPredefinedLicense(): return LicenseType.PREDEFINED
     
     return LicenseType.NONE
 
   def setLicense(self, license):
-    PlayerPrefs.set(LICENSE_PLAYER_PREFS_KEY, license)
+    PlayerPrefs.set(PlayerPrefsKeys.LICENSE, license)
+    self.__blocked = False
 
   def resetLicense(self):
-    PlayerPrefs.delete(LICENSE_PLAYER_PREFS_KEY)
-    PlayerPrefs.delete(TOKEN_PLAYER_PREFS_KEY)
+    PlayerPrefs.delete(PlayerPrefsKeys.LICENSE)
+    PlayerPrefs.delete(PlayerPrefsKeys.TOKEN)
+    self.__blocked = False
+
+  def blockLicense(self):
+    self.__blocked = True
 
   def getToken(self):
-    return PlayerPrefs.get(TOKEN_PLAYER_PREFS_KEY, '')
+    return PlayerPrefs.get(PlayerPrefsKeys.TOKEN, '')
   
   def setToken(self, token):
-    PlayerPrefs.set(TOKEN_PLAYER_PREFS_KEY, token)
+    PlayerPrefs.set(PlayerPrefsKeys.TOKEN, token)
 
   def __onWebsocketOpened(self, server):
     logger.info('onWebsocketOpened')
@@ -115,6 +123,10 @@ class LicenseManager(object):
           self.__client.sendText('ACTIVATED')
           self.__client.close()
           self.__uuid = str(uuid.uuid4())
+
+        if data.get('blocked', False):
+          logger.info('License is blocked')
+          self.blockLicense()
 
         message = data.get('message', None)
         if message and message.get('text', None):

@@ -9,10 +9,11 @@ from .common.HotKeys import HotKeys
 from .common.PlayerPrefs import PlayerPrefs
 from .common.ExceptionHandling import withExceptionHandling
 from .main.LifecycleStarter import LifecycleStarter
-from .main.PositionRequester import PositionRequester
+from .main.PositionRequester import PositionRequester, Commands
 from .main.MarkerDrawer import MarkerDrawer
 from .main.GreetingNotifier import GreetingNotifier
 from .main.LicenseManager import LicenseManager
+from .constants import PlayerPrefsKeys
 
 
 
@@ -20,8 +21,6 @@ DEBUG_MODE = '{{DEBUG_MODE}}'
 CONFIG_PATH = './mods/configs/wotstat.positions/config.cfg'
 LICENSE_FILE_PATH = './mods/wotstat.positions.license'
 
-class PlayerPrefsKeys:
-  LAST_VERSION = 'lastVersion'
 
 logger = Logger.instance()
 hotkeys = HotKeys.instance()
@@ -56,13 +55,17 @@ class WotstatPositions(object):
     settings.onSettingsChanged += self.__onSettingsChanged
     settings.setup("wotstat_positions")
 
-    licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
+    self.licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
 
     drawer = MarkerDrawer()
-    self.requseter = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer, licenseManager=licenseManager)
-    self.markerDrawer = LifecycleStarter(self.requseter)
+    self.requester = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer, licenseManager=self.licenseManager)
+    self.requester.onCommand += self.__onServerCommand
+
+    self.lifecycle = LifecycleStarter(self.requester, self.licenseManager)
     
-    GreetingNotifier(self.config.get('baseURL'), licenseManager)
+    greeting = GreetingNotifier(self.config.get('baseURL'), self.licenseManager)
+    greeting.onGameOpen += self.__onGameOpen
+
     PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 
     HotKeys.instance().onCommand += self.__onCommand
@@ -76,4 +79,18 @@ class WotstatPositions(object):
     if not getattr(BigWorld.player(), 'inWorld', False): return
 
     if command == 'sendReport':
-      self.requseter.sendReport()
+      self.requester.sendReport()
+
+  def __onServerCommand(self, command):
+    logger.info("Server command: %s" % command)
+    if command == Commands.DISABLE_FOR_SESSION:
+      self.lifecycle.disable()
+    elif command == Commands.ENABLE_FOR_SESSION:
+      self.lifecycle.enable()
+    elif command == Commands.RESET_LICENSE:
+      self.licenseManager.resetLicense()
+    elif command == Commands.BLOCK_LICENSE:
+      self.licenseManager.blockLicense()
+
+  def __onGameOpen(self):
+    self.lifecycle.enable()

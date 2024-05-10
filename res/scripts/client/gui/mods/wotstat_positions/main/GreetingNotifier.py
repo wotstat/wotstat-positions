@@ -9,20 +9,22 @@ from .WotHookEvents import wotHookEvents
 from ..common.PlayerPrefs import PlayerPrefs
 from ..common.Logger import Logger
 from ..common.Notifier import Notifier
-from ..common.ExceptionHandling import withExceptionHandling
+from ..common.ExceptionHandling import SendExceptionEvent, withExceptionHandling
 from ..common.i18n import t
+from ..constants import POSITION_WOTSTAT_EVENT_ENTER_LICENSE, POSITION_WOTSTAT_EVENT_RESET_LICENSE
 from .LicenseManager import LicenseManager, LicenseType # noqa: F401
 
 LANGUAGE = getClientLanguage()
 logger = Logger.instance()
 notifier = Notifier.instance()
 
-POSITION_WOTSTAT_EVENT_ENTER_LICENSE = 'POSITION_WOTSTAT_EVENT_ENTER_LICENSE'
-POSITION_WOTSTAT_EVENT_RESET_LICENSE = 'POSITION_WOTSTAT_EVENT_RESET_LICENSE'
 
 LAST_VISIBLE_GREETING_PLAYER_PREFS_KEY = 'lastVisibleGreeting'
 
 class GreetingNotifier():
+
+  onGameOpen = SendExceptionEvent()
+  onFirstGameOpen = SendExceptionEvent()
 
   def __init__(self, serverUrl, licenseManager):
     # type: (str, LicenseManager) -> None
@@ -104,11 +106,13 @@ class GreetingNotifier():
   # При первом открытии игры
   def __firstGameOpenGreeting(self):
     logger.debug('Requesting first greeting message')
+    self.onFirstGameOpen()
     pass
 
   # При каждом перезаходе (например смена сервера)
   def __gameOpenGreeting(self):
     logger.debug('Requesting greeting message')
+    self.onGameOpen()
     url = '/api/v1/greeting?' + self.__getQueryPostfix()
     BigWorld.fetchURL(self.__serverUrl + url, self.__messageResponse, method='GET')
 

@@ -11,20 +11,15 @@ import Keys
 
 from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, ShowVariants
-from ..common.ExceptionHandling import withExceptionHandling
+from ..common.ExceptionHandling import SendExceptionEvent, withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
 from ..common.Notifier import Notifier
 from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
+from ..constants import ServerCommands as Commands
 from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea, LicenseManager  # noqa: F401
-
-class Commands:
-  PAUSE_REQUESTER = 'PAUSE_REQUESTER'
-  RESUME_REQUESTER = 'RESUME_REQUESTER'
-  SKIP_REDRAW = 'SKIP_REDRAW'
-  RESET_DRAWER = 'RESET_DRAWER'
 
 
 logger = Logger.instance()
@@ -47,6 +42,8 @@ def getPlayerVehicle(player=BigWorld.player()):
   return None
 
 class PositionRequester(IPositionRequester):
+
+  onCommand = SendExceptionEvent()
 
   def __init__(self, serverUrl, drawer, licenseManager):
     # type: (str, IPositionDrawer, LicenseManager.LicenseManager) -> None
@@ -305,11 +302,13 @@ class PositionRequester(IPositionRequester):
           elif c == Commands.RESET_DRAWER:
             self.__drawer.reset()
 
+          self.onCommand(c)
+
+
     if not skipRedraw:
       self.__lastResponse = PositionsResponse(parsed)
       self.__redraw()
-
-  
+ 
   def __redraw(self):
     self.__drawer.clear()
 
