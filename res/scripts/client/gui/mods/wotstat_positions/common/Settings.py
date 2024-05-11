@@ -102,7 +102,7 @@ class Settings(Singleton):
           templates.createDropdown(t('settings:showAll3D'), SK.SHOW_ALL_MARKERS_3D, DropdownVariants, settings[SK.SHOW_ALL_MARKERS_3D], tooltip=t('settings:showAll3DTooltip')),
         ],
         'column2': [
-          templates.createSlider(t('settings:interval'), SK.UPDATE_INTERVAL, settings[SK.UPDATE_INTERVAL], 5, 120, 5,
+          templates.createSlider(t('settings:interval'), SK.UPDATE_INTERVAL, settings[SK.UPDATE_INTERVAL], 15, 120, 5,
                                  tooltip=t('settings:intervalTooltip'), width=350, format=t('settings:intervalFormat')),
           # TODO: reset button, but not refresh UI
           # templates.createSlider(t('settings:interval'), 'updateInterval', settings['updateInterval'], 5, 120, 5,

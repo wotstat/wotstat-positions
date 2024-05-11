@@ -78,7 +78,7 @@ class Notifier(Singleton):
 
     def showNotifications():
       for notification in self.__notificationQueue:
-        SystemMessages.pushMessage(notification[0], notification[1], notification[2], notification[3], notification[4])
+        self.showNotification(notification[0], notification[1], notification[2], notification[3], notification[4])
       self.__notificationQueue = []
       self.__showTimer = None
 

@@ -11,12 +11,12 @@ logger = Logger.instance()
 def showPlayerMessage(message, color=BATTLE_MESSAGES_CONSTS.COLOR_YELLOW):
   # type: (BATTLE_MESSAGES_CONSTS, str) -> None
   _showMessage(BATTLE_VIEW_ALIASES.PLAYER_MESSAGES, color, message)
-  logger.info('Show player message: %s' % message)
+  logger.debug('Show player message: %s' % message)
 
 def showVehicleMessage(message, color=BATTLE_MESSAGES_CONSTS.COLOR_YELLOW):
   # type: (BATTLE_MESSAGES_CONSTS, str) -> None
   _showMessage(BATTLE_VIEW_ALIASES.VEHICLE_MESSAGES, color, message)
-  logger.info('Show vehicle message: %s' % message)
+  logger.debug('Show vehicle message: %s' % message)
 
 
 def _showMessage(viewName, color, message):
