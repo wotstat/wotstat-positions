@@ -14,6 +14,12 @@ logger = Logger.instance()
 POSITION_WOTSTAT_EVENT_PREFIX = 'POSITION_WOTSTAT_EVENT'
 POSITION_WOTSTAT_EVENT_OPEN_URL = 'POSITION_WOTSTAT_EVENT_OPEN_URL:'
 
+def new_handleAction(obj, *a, **k):
+  Notifier.instance().events_handleAction(old_handleAction, obj, *a, **k)
+
+old_handleAction = NotificationsActionsHandlers.handleAction
+NotificationsActionsHandlers.handleAction = new_handleAction
+
 class Notifier(Singleton):
 
   @staticmethod
@@ -30,12 +36,10 @@ class Notifier(Singleton):
     wotHookEvents.onHangarLoaded += self.__onHangarLoaded
     wotHookEvents.onHangarDestroyed += self.__onHangarDestroyed
 
-    self.old_handleAction = NotificationsActionsHandlers.handleAction
-    NotificationsActionsHandlers.handleAction = self.events_handleAction
-
   @withExceptionHandling()
-  def events_handleAction(self, obj, model, typeID, entityID, actionName):
+  def events_handleAction(self, oldHandler, obj, *a, **k):
     try:
+      _, _, _, actionName = a
       if actionName.startswith(POSITION_WOTSTAT_EVENT_OPEN_URL):
         target = actionName.split(POSITION_WOTSTAT_EVENT_OPEN_URL)[1]
         logger.info('Opening personal wotstat for %s' % target)
@@ -44,9 +48,9 @@ class Notifier(Singleton):
         self.onEvent(actionName)
         logger.info('Event %s' % actionName)
       else:
-        self.old_handleAction(obj, model, typeID, entityID, actionName)
+        oldHandler(obj, *a, **k)
     except:
-      self.old_handleAction(obj, model, typeID, entityID, actionName)
+      oldHandler(obj, *a, **k)
 
 
   @withExceptionHandling()
