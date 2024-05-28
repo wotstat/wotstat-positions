@@ -1,6 +1,7 @@
 import os
 
 import BigWorld
+from debug_utils import LOG_CURRENT_EXCEPTION
 from external_strings_utils import unicode_from_utf8
 
 from .ExceptionHandling import withExceptionHandling
@@ -33,6 +34,7 @@ class PlayerPrefs:
       with open(os.path.join(PREFERENCES_PATH, key), "r") as f:
         return f.read()
     except Exception as e:
+      LOG_CURRENT_EXCEPTION()
       return default
     
   @staticmethod
@@ -44,6 +46,7 @@ class PlayerPrefs:
       with open(os.path.join(PREFERENCES_PATH, key), "w") as f:
         f.write(value)
     except Exception as e:
+      LOG_CURRENT_EXCEPTION()
       pass
 
   @staticmethod
@@ -51,7 +54,9 @@ class PlayerPrefs:
     # type: (str) -> None
 
     try:
-      del _cache[key]
+      if key in _cache:
+        del _cache[key]
       os.remove(os.path.join(PREFERENCES_PATH, key))
     except Exception as e:
+      LOG_CURRENT_EXCEPTION()
       pass
