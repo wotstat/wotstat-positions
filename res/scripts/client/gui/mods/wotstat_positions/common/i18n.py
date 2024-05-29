@@ -3,7 +3,7 @@ from helpers import getClientLanguage
 from Singleton import Singleton
 
 RU = {
-  'settings:modDisplayName': 'Мод «Позиции на миникарте» от WotStat',
+  'settings:modDisplayName': 'Мод «Позиции от WotStat»',
   'settings:showArea': 'Отображать области эффективности',
   'settings:showMinimapMarkers': 'Отображать позиции на миникарте',
   'settings:showIdealMarker': 'Отображать <b>наилучшую</b> позицию в 3D',
@@ -35,7 +35,7 @@ RU = {
 }
 
 EN = {
-  'settings:modDisplayName': 'Minimap positions by WotStat',
+  'settings:modDisplayName': 'Positions by WotStat',
   'settings:showArea': 'Display efficiency areas',
   'settings:showMinimapMarkers': 'Display positions on the minimap',
   'settings:showIdealMarker': 'Display the <b>best</b> position in 3D',
