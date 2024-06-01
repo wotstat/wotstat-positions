@@ -1,3 +1,5 @@
+# from gui.mods.wotstat_positions.test.messages import testNotification
+
 import BigWorld
 import json
 
