@@ -40,7 +40,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: false
-          prerelease: false
+          prerelease: true
           files: ${{ env.MOD }}
           token: ${{ github.token }}
           body: |
