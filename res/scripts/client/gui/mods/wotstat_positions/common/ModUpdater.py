@@ -6,10 +6,13 @@ import random
 from datetime import datetime
 
 import BigWorld
+from gui import SystemMessages
 from helpers import getShortClientVersion
 
 from .Logger import Logger
+from .Notifier import Notifier
 from .ExceptionHandling import withExceptionHandling
+from .i18n import t
 
 GH_HEADERS = {
   'X-GitHub-Api-Version': '2022-11-28',
@@ -19,7 +22,7 @@ GH_HEADERS = {
 
 logger = Logger.instance()
 
-def _numeticVersion():
+def _numericVersion():
   return getShortClientVersion().split('v.')[1].strip()
 
 class UpdateStatus:
@@ -38,9 +41,10 @@ class ModUpdater(object):
 
   def getFullModName(self, version=None):
     return self.modName + '_' + (version if version else self.currentVersion) + '.wotmod'
-
+  
+  @withExceptionHandling()
   def copyToNextVersions(self): 
-    gameVersion = _numeticVersion()
+    gameVersion = _numericVersion()
     currentMod = os.path.join(os.path.abspath('./mods/'), gameVersion, self.getFullModName())
 
     def increaseVersion(version, index):
@@ -57,7 +61,8 @@ class ModUpdater(object):
       filePath = os.path.join(p, self.getFullModName())
       if not os.path.exists(filePath):
         shutil.copyfile(currentMod, filePath)
-
+  
+  @withExceptionHandling()
   def updateToGitHubReleases(self, onComplete=None):
 
     def onCompleteInvoke(status):
@@ -72,7 +77,7 @@ class ModUpdater(object):
         return onCompleteInvoke(UpdateStatus.NOT_OK_RESPONSE)
         
       
-      gameVersion = _numeticVersion()
+      gameVersion = _numericVersion()
       newModPath = os.path.join(os.path.abspath('./mods/'), gameVersion, self.getFullModName(latestVersion))
       if not os.path.exists(newModPath):
         with open(newModPath, "wb") as f:
@@ -136,3 +141,38 @@ class ModUpdater(object):
     
     BigWorld.fetchURL(self.ghUrl, onResponse, GH_HEADERS)
 
+  @withExceptionHandling()
+  def showReleaseNotes(self, lastVersion):
+    versionHistory = [
+      '1.0.0',
+      '1.0.1',
+    ]
+
+    logger.debug('Show release notes: %s' % lastVersion)
+
+    if lastVersion not in versionHistory:
+      logger.debug('Show release notes: last version not in history')
+      return
+    
+    lastVersionIndex = versionHistory.index(lastVersion)
+    currentVersionIndex = versionHistory.index(self.currentVersion) if self.currentVersion in versionHistory else len(versionHistory) - 1
+    
+    notes = [[t('releaseNotes:%s' % version), version] for version in versionHistory[(lastVersionIndex + 1):(currentVersionIndex + 1)]]
+
+    if len(notes) == 0:
+      return
+    
+    releaseNotes = '\n' + t('updateMessage:releaseNotesPrefix').format(version=self.currentVersion)
+    if len(notes) == 1:
+      releaseNotes += '\n' + notes[0][0]
+    else:
+      notes.reverse()
+      releaseNotes += '\n\n' + '\n\n'.join([('<b>v%s</b>\n' % note[1]) + note[0] for note in notes])
+
+
+    Notifier.instance().showNotification(
+      releaseNotes,
+      SystemMessages.SM_TYPE.InformationHeader,
+      'High',
+      { 'header': t('updateMessage:header'), }
+    )

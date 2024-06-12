@@ -101,7 +101,7 @@ class GreetingNotifier():
       'license': self.__licenseManager.getLicense()
     }
     
-    return '&'.join(['%s=%s' % (k, v) for k, v in query.items()])      
+    return '&'.join(['%s=%s' % (k, v) for k, v in query.items() if v is not None])      
 
   # При первом открытии игры
   def __firstGameOpenGreeting(self):

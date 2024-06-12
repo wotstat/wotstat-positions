@@ -6,7 +6,7 @@ from Event import Event
 
 from .Logger import Logger
 
-def _currentExeptionToString(tags=None, frame=1):
+def _currentExceptionToString(tags=None, frame=1):
   msg = _makeMsgHeader(sys._getframe(frame)) + '\n'
   etype, value, tb = sys.exc_info()
   msg += ''.join(format_exception(etype, value, tb, None))
@@ -17,7 +17,6 @@ def _currentExeptionToString(tags=None, frame=1):
       line += '[EXCEPTION]' + _addTagsToMsg(tags, extMsg)
   return line
 
-
 def withExceptionHandling(logger=Logger.instance()):
   def inner_decorator(f):
     def wrapped(*args, **kwargs):
@@ -25,11 +24,19 @@ def withExceptionHandling(logger=Logger.instance()):
         return f(*args, **kwargs)
       except:
         if logger:
-          logger.critical(_currentExeptionToString())
-        else:
+          logger.critical(_currentExceptionToString())
+        else:  
           LOG_CURRENT_EXCEPTION()
     return wrapped
   return inner_decorator
+
+def logCurrentException(prefix=None, logger=Logger.instance(), level='CRITICAL'):
+  if logger:
+    msg = prefix + '\n' if prefix else ''
+    msg += _currentExceptionToString()
+    logger.printLog(level, msg)
+  else:
+    LOG_CURRENT_EXCEPTION()
 
 class SendExceptionEvent(Event):
   def __init__(self, logger=Logger.instance()):
@@ -42,6 +49,6 @@ class SendExceptionEvent(Event):
         delegate(*args, **kwargs)
       except:
         if self.logger:
-          self.logger.critical(_currentExeptionToString())
+          self.logger.critical(_currentExceptionToString())
         else:
           LOG_CURRENT_EXCEPTION()

@@ -4,10 +4,13 @@ import BigWorld
 from debug_utils import LOG_CURRENT_EXCEPTION
 from external_strings_utils import unicode_from_utf8
 
-from .ExceptionHandling import withExceptionHandling
+from .ExceptionHandling import withExceptionHandling, logCurrentException
+from .Logger import Logger
 
 _preferences_path = unicode_from_utf8(BigWorld.wg_getPreferencesFilePath())[1]
 PREFERENCES_PATH = os.path.normpath(os.path.join(os.path.dirname(_preferences_path), 'mods', 'wotstat.positions'))
+
+logger = Logger.instance()
 
 @withExceptionHandling()
 def setup():
@@ -30,11 +33,16 @@ class PlayerPrefs:
     if not os.path.exists(PREFERENCES_PATH):
       return default
     
+    file = os.path.join(PREFERENCES_PATH, key)
+
+    if not os.path.exists(file):
+      return default
+    
     try:
-      with open(os.path.join(PREFERENCES_PATH, key), "r") as f:
+      with open(file, "r") as f:
         return f.read()
     except Exception as e:
-      LOG_CURRENT_EXCEPTION()
+      logCurrentException("Failed to read preference file: %s" % key, level='ERROR')
       return default
     
   @staticmethod
@@ -46,8 +54,7 @@ class PlayerPrefs:
       with open(os.path.join(PREFERENCES_PATH, key), "w") as f:
         f.write(value)
     except Exception as e:
-      LOG_CURRENT_EXCEPTION()
-      pass
+      logCurrentException("Failed to write preference file: %s" % key, level='ERROR')
 
   @staticmethod
   def delete(key):

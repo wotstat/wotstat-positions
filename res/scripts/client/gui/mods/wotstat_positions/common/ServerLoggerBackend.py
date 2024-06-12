@@ -34,7 +34,7 @@ class ServerLoggerBackend(ILoggerBackend):
 
     self.__sendingLoop()
 
-  def printlog(self, level, log):
+  def printLog(self, level, log):
     if getLevelOrder(level) >= self.__minSendLevelOrder:
       self.__send(level, log)
       

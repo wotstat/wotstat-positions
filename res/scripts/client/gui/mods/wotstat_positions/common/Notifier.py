@@ -52,7 +52,6 @@ class Notifier(Singleton):
     except:
       oldHandler(obj, *a, **k)
 
-
   @withExceptionHandling()
   def showNotification(self, text, type=SystemMessages.SM_TYPE.Information, priority=None, messageData=None, savedData=None):
     # type: (str, SystemMessages.SM_TYPE, str, any, any) -> None

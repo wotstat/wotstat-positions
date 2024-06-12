@@ -14,7 +14,7 @@ def getLevelOrder(level):
 
 
 class ILoggerBackend:
-  def printlog(self, level, log):
+  def printLog(self, level, log):
     # type: (str, str) -> None
     pass
 
@@ -23,7 +23,7 @@ class SimpleLoggerBackend(ILoggerBackend):
     self.prefix = prefix
     self.minLevelOrder = getLevelOrder(minLevel)
 
-  def printlog(self, level, log):
+  def printLog(self, level, log):
     if getLevelOrder(level) >= self.minLevelOrder:
       print("%s[%s]: %s" % (self.prefix, level, str(log)))
 
@@ -44,29 +44,29 @@ class Logger(Singleton):
     self.isSetup = True
 
     for log in self.preSetupQueue:
-      self.printlog(log[0], log[1])
+      self.printLog(log[0], log[1])
     
     self.preSetupQueue = []
 
-  def printlog(self, level, log):
+  def printLog(self, level, log):
     if not self.isSetup:
       self.preSetupQueue.append((level, log))
       return
     
     for backend in self.backends:
-      backend.printlog(level, log)
+      backend.printLog(level, log)
 
   def debug(self, log):
-    self.printlog("DEBUG", log)
+    self.printLog("DEBUG", log)
 
   def info(self, log):
-    self.printlog("INFO", log)
+    self.printLog("INFO", log)
 
   def warn(self, log):
-    self.printlog("WARN", log)
+    self.printLog("WARN", log)
 
   def error(self, log):
-    self.printlog("ERROR", log)
+    self.printLog("ERROR", log)
 
   def critical(self, log):
-    self.printlog("CRITICAL", log)
+    self.printLog("CRITICAL", log)

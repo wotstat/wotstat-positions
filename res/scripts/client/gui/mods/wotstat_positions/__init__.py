@@ -51,6 +51,12 @@ class WotstatPositions(object):
                          ghUrl=self.config.get('ghURL'))
     updator.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
 
+
+    lastModeVersion = PlayerPrefs.get(PlayerPrefsKeys.LAST_VERSION)
+    PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
+    if lastModeVersion and lastModeVersion != version:
+      updator.showReleaseNotes(lastModeVersion)
+
     settings = Settings.instance()
     settings.onSettingsChanged += self.__onSettingsChanged
     settings.setup("wotstat_positions")
@@ -65,8 +71,6 @@ class WotstatPositions(object):
     
     greeting = GreetingNotifier(self.config.get('baseURL'), self.licenseManager)
     greeting.onGameOpen += self.__onGameOpen
-
-    PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
 
     HotKeys.instance().onCommand += self.__onCommand
 
