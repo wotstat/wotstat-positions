@@ -64,6 +64,7 @@ class PositionRequester(IPositionRequester):
     self.__licenseManager = licenseManager
 
     self.__lastReportTime = 0
+    self.__lastPlayerVehicle = None
 
     wotHookEvents.PlayerAvatar_onArenaPeriodChange += self.__onArenaPeriodChange
     settings.onSettingsChanged += self.__onSettingsChanged
@@ -76,6 +77,7 @@ class PositionRequester(IPositionRequester):
     self.__lastRequestTime = 0
     self.__lastReportTime = 0
     self.__lastResponse = None
+    self.__lastPlayerVehicle = None
     self.__battleUUID = str(uuid.uuid4())
     self.__licenseCache = self.__licenseManager.getLicense()
 
@@ -196,17 +198,29 @@ class PositionRequester(IPositionRequester):
       logger.debug('Player vehicle is None')
       return
     
+    playerVehicleName = vehicle.typeDescriptor.name
+    if self.__lastPlayerVehicle and self.__lastPlayerVehicle != playerVehicleName:
+      logger.info('Clear old markers due vehicle changed')
+      self.__drawer.clear()
+      self.__lastPlayerVehicle = None
+    
     battleTime = self.__battleTime()
     if battleTime <= -10000:
       logger.debug('Battle is still loading')
       return
     
     time = BigWorld.time()
-    interval = settings.get(SettingsKeys.UPDATE_INTERVAL)
-    interval = 5 if interval < 5 else interval
-    if time - self.__lastRequestTime < interval:
+    interval =  max(10, settings.get(SettingsKeys.UPDATE_INTERVAL))
+    delta = time - self.__lastRequestTime
+    if delta < interval and playerVehicleName == self.__lastPlayerVehicle or delta < 10:
       return
+    
+    if not self.__drawer.isReady():
+      logger.info('Drawer is not ready')
+      return
+    
     self.__lastRequestTime = time
+    self.__lastPlayerVehicle = playerVehicleName
 
     arena = self.__arenaInfoProvider
 
@@ -225,7 +239,7 @@ class PositionRequester(IPositionRequester):
       'gameplay': ARENA_GAMEPLAY_NAMES[player.arenaTypeID >> 16],
       'arena': player.arena.arenaType.geometry,
       'team': player.team,
-      'tank': BigWorld.entities[BigWorld.player().playerVehicleID].typeDescriptor.name,
+      'tank': playerVehicleName,
       'level': player.vehicleTypeDescriptor.level,
       'type': shortTankType(getTankType(player.vehicleTypeDescriptor.type.tags)),
       'role': getTankRole(player.vehicleTypeDescriptor.role),

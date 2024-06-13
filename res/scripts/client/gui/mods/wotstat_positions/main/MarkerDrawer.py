@@ -4,6 +4,7 @@ import BigWorld
 from gui.shared.personality import ServicesLocator
 from account_helpers.AccountSettings import AccountSettings
 from gui.Scaleform.daapi.view.battle.shared.markers2d.manager import MarkersManager # noqa: F401
+from gui.Scaleform.daapi.view.battle.shared.minimap.component import MinimapComponent # noqa: F401
 from gui.Scaleform.daapi.view.battle.shared.minimap import plugins
 from gui.Scaleform.daapi.view.battle.shared.minimap.settings import ENTRY_SYMBOL_NAME, CONTAINER_NAME, TRANSFORM_FLAG, clampMinimapSizeIndex
 from gui.Scaleform.daapi.view.battle.shared.markers2d.settings import CommonMarkerType, MARKER_SYMBOL_NAME
@@ -14,6 +15,7 @@ from gui.battle_control import minimap_utils
 
 from ..common.Logger import Logger
 from ..common.Settings import Settings, SettingsKeys, SettingsConstants
+from ..common.ExceptionHandling import withExceptionHandling
 from .utils import mapInterval
 from . import IPositionDrawer, PositionPoint, PositionArea  # noqa: F401
 
@@ -35,7 +37,7 @@ MIN_AREA_STEP = 10
 MAX_AREA_STEP = 40
 
 class MarkerDrawer(IPositionDrawer):
-  __minimap = None
+  __minimap = None # type: MinimapComponent
   __markerManager = None # type: MarkersManager
 
   __markers = {
@@ -60,6 +62,51 @@ class MarkerDrawer(IPositionDrawer):
   def __init__(self):
     self.__minimap = None
     self.__markerManager = None
+
+  def __getMarkerManager(self):
+    # type: () -> MarkersManager | None
+    battle = ServicesLocator.appLoader.getDefBattleApp()
+    if not battle: return None
+    
+    view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
+    if not view: return None
+    
+    return view._external[1]
+  
+  def __getMinimap(self):
+    # type: () -> MinimapComponent | None
+    battle = ServicesLocator.appLoader.getDefBattleApp()
+    if not battle: return None
+    
+    view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
+    if not view: return None
+    
+    return view.components.get(BATTLE_VIEW_ALIASES.MINIMAP, None)
+
+  @withExceptionHandling()
+  def isReady(self):
+    if not self.__markerManager or not self.__markerManager.isCreated():
+      manager = self.__getMarkerManager()
+      if not manager: return False
+      
+      if not hasattr(manager, '_MarkersManager__canvas'): return False
+      if not manager._MarkersManager__canvas: return False
+
+    if self.__markerManager and self.__markerManager.isCreated():
+      if not hasattr(self.__markerManager, '_MarkersManager__canvas'): return False
+      if not self.__markerManager._MarkersManager__canvas: return False
+
+
+    if not self.__minimap or not self.__minimap.isCreated():
+      minimap = self.__getMinimap()
+      if not minimap: return False
+
+    if self.__minimap and self.__minimap.isCreated():
+      if not hasattr(self.__minimap, '_MinimapComponent__component'): return False
+      if not self.__minimap._MinimapComponent__component: return False
+
+    return True
+
 
   def drawPoints(self, points):
     # type: (List[PositionPoint]) -> None
@@ -150,17 +197,7 @@ class MarkerDrawer(IPositionDrawer):
       return marker
 
     if not self.__minimap or not self.__minimap.isCreated():
-      battle = ServicesLocator.appLoader.getDefBattleApp()
-      if not battle:
-        self.__minimap = None
-        return
-    
-      view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
-      if not view:
-        self.__minimap = None
-        return
-      
-      self.__minimap = view.components[BATTLE_VIEW_ALIASES.MINIMAP]
+      self.__minimap = self.__getMinimap()
 
     if not self.__minimap:
       return
@@ -195,16 +232,7 @@ class MarkerDrawer(IPositionDrawer):
       return marker
 
     if not self.__markerManager or not self.__markerManager.isCreated():
-      battle = ServicesLocator.appLoader.getDefBattleApp()
-      if not battle:
-        self.__markerManager = None
-        return
-      
-      view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
-      if not view:
-        return
-
-      self.__markerManager = view._external[1]
+      self.__markerManager = self.__getMarkerManager()
 
     if not self.__markerManager:
       return
@@ -218,7 +246,7 @@ class MarkerDrawer(IPositionDrawer):
 
 class Marker():
   def __init__(self, position, markerType, container, scale, minimap, baseScale, active=True):
-    # type: (Tuple[float, float], str, str, float, plugins.MinimapPlugin, float, bool) -> Marker
+    # type: (Tuple[float, float], str, str, float, MinimapComponent, float, bool) -> Marker
     self.__position = position
     self.__markerType = markerType
     self.__container = container

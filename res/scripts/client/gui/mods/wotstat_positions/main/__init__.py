@@ -8,6 +8,10 @@ class IPositionRequester(object):
     pass
 
 class IPositionDrawer(object):
+
+  def isReady(self):
+    return False
+
   def drawPoints(self, points):
     # type: (List[PositionPoint]) -> None
     pass
