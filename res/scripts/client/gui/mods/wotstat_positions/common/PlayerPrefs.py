@@ -54,7 +54,7 @@ class PlayerPrefs:
       with open(os.path.join(PREFERENCES_PATH, key), "w") as f:
         f.write(value)
     except Exception as e:
-      logCurrentException("Failed to write preference file: %s" % key, level='ERROR')
+      logCurrentException("Failed to write preference file: %s" % key)
 
   @staticmethod
   def delete(key):
