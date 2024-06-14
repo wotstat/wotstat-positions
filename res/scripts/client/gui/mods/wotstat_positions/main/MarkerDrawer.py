@@ -67,6 +67,8 @@ class MarkerDrawer(IPositionDrawer):
     # type: () -> MarkersManager | None
     battle = ServicesLocator.appLoader.getDefBattleApp()
     if not battle: return None
+
+    if not battle.containerManager: return None
     
     view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
     if not view: return None
