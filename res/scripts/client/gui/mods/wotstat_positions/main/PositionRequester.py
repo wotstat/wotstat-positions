@@ -51,6 +51,7 @@ class PositionRequester(IPositionRequester):
     self.__drawer = drawer
     self.__serverUrl = serverUrl
     self.__lastRequestTime = 0
+    self.__getDrawerReadyRetryCount = 0
 
     self.__arenaInfoProvider = ArenaInfoProvider()
 
@@ -76,6 +77,7 @@ class PositionRequester(IPositionRequester):
     self.__isPaused = False
     self.__lastRequestTime = 0
     self.__lastReportTime = 0
+    self.__getDrawerReadyRetryCount = 0
     self.__lastResponse = None
     self.__lastPlayerVehicle = None
     self.__battleUUID = str(uuid.uuid4())
@@ -210,14 +212,15 @@ class PositionRequester(IPositionRequester):
       return
     
     time = BigWorld.time()
-    interval =  max(10, settings.get(SettingsKeys.UPDATE_INTERVAL))
+    interval = max(10, settings.get(SettingsKeys.UPDATE_INTERVAL))
     delta = time - self.__lastRequestTime
     if delta < interval and playerVehicleName == self.__lastPlayerVehicle or delta < 10:
       return
     
     if not self.__drawer.isReady():
-      logger.info('Drawer is not ready')
-      return
+      self.__getDrawerReadyRetryCount += 1
+      if self.__getDrawerReadyRetryCount < 20:
+        return
     
     self.__lastRequestTime = time
     self.__lastPlayerVehicle = playerVehicleName
@@ -325,6 +328,9 @@ class PositionRequester(IPositionRequester):
       self.__redraw()
  
   def __redraw(self):
+    if not self.__drawer.isReady():
+      return
+    
     self.__drawer.clear()
 
     if not self.__lastResponse: return

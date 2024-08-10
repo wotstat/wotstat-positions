@@ -72,6 +72,8 @@ class MarkerDrawer(IPositionDrawer):
     
     view = battle.containerManager.getContainer(WindowLayer.VIEW).getView()
     if not view: return None
+    if not view._external: return None
+    if len(view._external) < 2: return None
     
     return view._external[1]
   
