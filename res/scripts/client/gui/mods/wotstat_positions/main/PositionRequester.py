@@ -31,9 +31,6 @@ JSON_HEADERS = {'Content-Type': 'application/json'}
 
 def getPlayerVehicle(player=BigWorld.player()):
 
-  if hasattr(player, 'vehicle') and player.vehicle is not None:
-    return player.vehicle
-
   if hasattr(player, 'playerVehicleID') and player.playerVehicleID is not None:
     entity = BigWorld.entity(player.playerVehicleID)
     if entity is not None and isinstance(entity, Vehicle) and entity.isPlayerVehicle:
