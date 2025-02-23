@@ -15,4 +15,5 @@
   ],
   "python.analysis.userFileIndexingLimit": 20000,
   "cSpell.language": "en,ru",
+  "as3mxml.sdk.framework": "/Applications/AIRSDK",
 }

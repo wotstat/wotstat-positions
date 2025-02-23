@@ -1,0 +1,1 @@
+mxmlc -load-config+=build-config.xml src/wotstat/positions/MinimapOverlay.as

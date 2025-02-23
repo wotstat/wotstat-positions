@@ -13,6 +13,7 @@ from .main.PositionRequester import PositionRequester, Commands
 from .main.MarkerDrawer import MarkerDrawer
 from .main.GreetingNotifier import GreetingNotifier
 from .main.LicenseManager import LicenseManager
+from .main.MinimapOverlay import setup as minimapOverlaySetup
 from .constants import PlayerPrefsKeys
 
 
@@ -62,6 +63,8 @@ class WotstatPositions(object):
     settings.setup("wotstat_positions")
 
     self.licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
+
+    minimapOverlaySetup()
 
     drawer = MarkerDrawer()
     self.requester = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer, licenseManager=self.licenseManager)

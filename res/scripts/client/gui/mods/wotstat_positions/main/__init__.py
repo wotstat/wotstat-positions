@@ -34,6 +34,24 @@ class IPositionDrawer(object):
   def reset(self):
     pass
 
+class Heatmap(object):
+  def __init__(self, points, step):
+    # type: (List[Tuple[float, float, float]], float) -> None
+    self.points = points
+    self.step = step
+    
+class Spots(object):
+  
+  class Point(object):
+    def __init__(self, position, hits):
+      # type: (Tuple[float, float, float], List[Tuple[float, float, float]]) -> None
+      self.position = position
+      self.hits = hits
+  
+  def __init__(self, points):
+    # type: (List[Point]) -> None
+    self.points = points
+
 class PositionPoint(object):
   def __init__(self, efficiency, position):
     # type: (float, Tuple[float, float]) -> None

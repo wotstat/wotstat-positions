@@ -18,8 +18,9 @@ from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
+from .MinimapOverlay import MinimapOverlay
 from ..constants import ServerCommands as Commands
-from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea, LicenseManager  # noqa: F401
+from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea, LicenseManager, Heatmap, Spots  # noqa: F401
 
 
 logger = Logger.instance()
@@ -260,7 +261,7 @@ class PositionRequester(IPositionRequester):
       'enemyLevels': [v.level for v in enemyVehicles if v],
     }
 
-    BigWorld.fetchURL(self.__serverUrl + '/api/v1/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
+    BigWorld.fetchURL(self.__serverUrl + '/api/v2/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
 
   @withExceptionHandling()
   def __onResponse(self, data):
@@ -322,6 +323,13 @@ class PositionRequester(IPositionRequester):
 
     if not skipRedraw:
       self.__lastResponse = PositionsResponse(parsed)
+      
+      overlay = MinimapOverlay.instance()
+      if overlay:
+        overlay.setupHeatmap(self.__lastResponse.getHeatmap())
+        overlay.setupPopularHeatmap(self.__lastResponse.getPopularHeatmap())
+        overlay.setupSpotPoints(self.__lastResponse.getSpotPoints())
+        
       self.__redraw()
  
   def __redraw(self):
@@ -336,8 +344,8 @@ class PositionRequester(IPositionRequester):
 
     response = self.__lastResponse
     
-    if self.__shouldDraw(SettingsKeys.SHOW_AREA):
-      self.__drawer.drawPolygons(response.getPolygons())
+    # if self.__shouldDraw(SettingsKeys.SHOW_AREA):
+    #   self.__drawer.drawPolygons(response.getPolygons())
 
     if self.__shouldDraw(SettingsKeys.SHOW_MINIMAP_MARKERS):
       self.__drawer.drawPoints(response.getPoints())
@@ -351,6 +359,9 @@ class PositionRequester(IPositionRequester):
 
       if not self.__shouldDraw(SettingsKeys.SHOW_IDEAL_MARKER):
         self.__drawer.drawMarkers3D(response.getIdealPoints())
+        
+    # if True and MinimapOverlay.instance():
+    #   MinimapOverlay.instance().drawHeatmap(response.getHeatmap())
 
   def __shouldDraw(self, key):
     variant = settings.get(key)
@@ -378,31 +389,26 @@ class PositionRequester(IPositionRequester):
 class PositionsResponse(object):
   def __init__(self, data):
     self.data = data
+    self.positions = data.get('positions', None)
 
   def getPoints(self):
-    if 'positions' not in self.data:
-      return []
-    
-    positions = self.data['positions']
+    if not self.positions: return []
 
-    if 'points' not in positions:
+    if 'points' not in self.positions:
       return []
     
-    points = positions['points']
+    points = self.positions['points']
     return PositionsResponse.__parsePointsList(points)
   
   def getIdealPoints(self):
-    if 'positions' not in self.data:
-      return []
-    
-    positions = self.data['positions']
+    if not self.positions: return []
 
-    if 'idealPoints' not in positions:
+    if 'idealPoints' not in self.positions:
       return []
     
-    points = positions['idealPoints']
+    points = self.positions['idealPoints']
     return PositionsResponse.__parsePointsList(points)
-  
+
   def getPolygons(self):
     if 'positions' not in self.data:
       return []
@@ -419,17 +425,14 @@ class PositionsResponse(object):
     parsed = []
 
     for polygon in polygons:
-      if 'efficiency' not in polygon or 'area' not in polygon:
-        continue
+      if 'efficiency' not in polygon or 'area' not in polygon: continue
 
       area = polygon['area']
-      if not isinstance(area, list):
-        continue
+      if not isinstance(area, list): continue
 
       parsedArea = []
       for point in area:
-        if not isinstance(point, list) or len(point) != 2:
-          continue
+        if not isinstance(point, list) or len(point) != 2: continue
 
         x = float(point[0])
         y = float(point[1])
@@ -438,6 +441,59 @@ class PositionsResponse(object):
       parsed.append(PositionArea(polygon['efficiency'], parsedArea))
       
     return parsed
+  
+  def getHeatmap(self):
+    return self.__parseHeatmap('heatmap')
+  
+  def getPopularHeatmap(self):
+    return self.__parseHeatmap('popularHeatmap')
+  
+  def getSpotPoints(self):
+    if not self.positions: return Spots([])
+    
+    points = self.positions.get('spotPoints', None)
+    if not points: return Spots([])
+    
+    if not isinstance(points, list): return Spots([])
+    
+    parsed = []
+    
+    for point in points:
+      p = point.get('point', None)
+      if not p: continue
+      
+      hits = point.get('hits', None)
+      if not hits: continue
+      
+      if not isinstance(p, list) or len(p) != 3: continue
+      if not isinstance(hits, list): continue
+      
+      parsedHits = []
+      for hit in hits:
+        if not isinstance(hit, list) or len(hit) != 3: continue
+        parsedHits.append((float(hit[0]), float(hit[1]), float(hit[2])))
+        
+      parsed.append(Spots.Point((float(p[0]), float(p[1]), float(p[2])), parsedHits))
+      
+    return Spots(parsed)
+  
+  
+  def __parseHeatmap(self, name):
+    if not self.positions: return Heatmap([], 0)
+    
+    heatmap = self.positions.get(name, None)
+    if not heatmap: return Heatmap([], 0)
+    
+    points = heatmap.get('data', None)
+    if not isinstance(points, list): return Heatmap([], 0)
+    
+    parsed = []
+    
+    for point in points:
+      if not isinstance(point, list) or len(point) != 3: continue
+      parsed.append([float(point[0]), float(point[1]), float(point[2])])
+      
+    return Heatmap(parsed, heatmap.get('step', 0))
 
   @staticmethod
   def __parsePointsList(points):

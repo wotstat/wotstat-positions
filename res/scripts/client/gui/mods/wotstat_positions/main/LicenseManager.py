@@ -33,9 +33,9 @@ class LicenseManager(object):
   def __init__(self, url, licenseFilePath):
     self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
     if LANGUAGE != 'ru':
-      self.__activatorPage = '%s/en/request-licence-key?requestId=' % url
+      self.__activatorPage = '%s/en/request-licence-key/?requestId=' % url
     else:
-      self.__activatorPage = '%s/request-licence-key?requestId=' % url
+      self.__activatorPage = '%s/request-licence-key/?requestId=' % url
 
     try:
       with open(licenseFilePath, "r") as f:
