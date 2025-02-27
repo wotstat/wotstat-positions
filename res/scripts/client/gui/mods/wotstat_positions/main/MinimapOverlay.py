@@ -1,3 +1,4 @@
+from math import sqrt
 from typing import Tuple
 import BigWorld
 from gui.Scaleform.framework.entities.View import View
@@ -8,8 +9,10 @@ from gui.app_loader.settings import APP_NAME_SPACE
 from gui.Scaleform.framework.managers.loaders import SFViewLoadParams
 from gui.Scaleform.framework.application import AppEntry
 from gui.shared import events, EVENT_BUS_SCOPE, g_eventBus
+from Avatar import PlayerAvatar
 
 from ..common.Logger import Logger
+from .utils import getPlayerVehicle
 from . import Spots, Heatmap
 
 logger = Logger.instance()
@@ -27,11 +30,20 @@ class MinimapOverlay(View):
     
     global minimapOverlayInstance
     minimapOverlayInstance = self
-    logger.info("MinimapOverlay populate")
+    
+    self.lastPlayerPosition = None
+    self.updatePlayerPositionLoopTimer = None
+    
+    self.updatePlayerPositionLoop()
     
   def _destroy(self):
     global minimapOverlayInstance
     minimapOverlayInstance = None
+    
+    if self.updatePlayerPositionLoopTimer:
+      BigWorld.cancelCallback(self.updatePlayerPositionLoopTimer)
+      self.updatePlayerPositionLoopTimer = None
+      
     return super(MinimapOverlay, self)._destroy()
   
   def setupSpotPoints(self, spots):
@@ -64,6 +76,9 @@ class MinimapOverlay(View):
     x, y, weight, multiplier = self.prepareHeatmap(heatmap)
     self.as_setupPopularHeatmap(x, y, weight, multiplier)
   
+  def clear(self):
+    self.as_clear()
+  
   def prepareHeatmap(self, heatmap):
     # type: (Heatmap) -> Tuple[list, list, list]
     minBounds, maxBounds = BigWorld.player().arena.getArenaBB()
@@ -82,6 +97,38 @@ class MinimapOverlay(View):
     multiplier = heatmap.step / max(width, height)
     return x, y, weight, multiplier
 
+  def updatePlayerPositionLoop(self):
+    self.updatePlayerPositionLoopTimer = BigWorld.callback(0.1, self.updatePlayerPositionLoop)
+    
+    player = BigWorld.player() # type: PlayerAvatar
+    if not player: return
+    if not hasattr(player, 'arena'): return
+    if not player.arena: return
+    if not hasattr(player, 'getOwnVehiclePosition'): return
+    
+    
+    minBounds, maxBounds = player.arena.getArenaBB()
+    
+    if not getPlayerVehicle(player): return
+    
+    (x, _, z) = player.getOwnVehiclePosition()
+    
+    if self.lastPlayerPosition:
+      lastX, lastZ = self.lastPlayerPosition
+      distance = sqrt((x - lastX) ** 2 + (z - lastZ) ** 2)
+      if distance < 0.5: return
+      
+    self.lastPlayerPosition = (x, z)
+    
+    width = maxBounds[0] - minBounds[0]
+    height = maxBounds[2] - minBounds[2]
+    
+    x = (x - minBounds[0]) / width
+    y = (z - minBounds[2]) / height
+    
+    self.as_setRelativeVehiclePosition(x, y)
+    
+
   def py_log(self, message):
     logger.info(message)
 
@@ -93,6 +140,9 @@ class MinimapOverlay(View):
     
   def as_setupPopularHeatmap(self, x, y, weight, multiplier):
     self.flashObject.as_setupPopularHeatmap(x, y, weight, multiplier)
+    
+  def as_setRelativeVehiclePosition(self, x, y):
+    self.flashObject.as_setRelativeVehiclePosition(x, y)
   
   def as_clear(self):
     self.flashObject.as_clear()

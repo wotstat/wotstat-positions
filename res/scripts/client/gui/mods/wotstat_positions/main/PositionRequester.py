@@ -2,7 +2,6 @@ import json
 import uuid
 
 import BigWorld # type: ignore
-from Vehicle import Vehicle
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
 from gui.Scaleform.genConsts.BATTLE_MESSAGES_CONSTS import BATTLE_MESSAGES_CONSTS
 from helpers import getClientLanguage
@@ -15,7 +14,7 @@ from ..common.ExceptionHandling import SendExceptionEvent, withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
 from ..common.Notifier import Notifier
 from ..common.i18n import t
-from .utils import shortTankType, getTankType, getTankRole
+from .utils import shortTankType, getTankType, getTankRole, getPlayerVehicle
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
 from .MinimapOverlay import MinimapOverlay
@@ -29,15 +28,6 @@ ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if i
 LANGUAGE = getClientLanguage()
 
 JSON_HEADERS = {'Content-Type': 'application/json'}
-
-def getPlayerVehicle(player=BigWorld.player()):
-
-  if hasattr(player, 'playerVehicleID') and player.playerVehicleID is not None:
-    entity = BigWorld.entity(player.playerVehicleID)
-    if entity is not None and isinstance(entity, Vehicle) and entity.isPlayerVehicle:
-      return entity
-
-  return None
 
 class PositionRequester(IPositionRequester):
 
@@ -202,6 +192,10 @@ class PositionRequester(IPositionRequester):
     if self.__lastPlayerVehicle and self.__lastPlayerVehicle != playerVehicleName:
       logger.info('Clear old markers due vehicle changed')
       self.__drawer.clear()
+      
+      overlay = MinimapOverlay.instance()
+      if overlay: overlay.clear()
+      
       self.__lastPlayerVehicle = None
     
     battleTime = self.__battleTime()

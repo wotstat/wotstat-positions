@@ -1,3 +1,6 @@
+import BigWorld # type: ignore
+from Vehicle import Vehicle
+
 from constants import ROLE_TYPE_TO_LABEL
 
 def shortTankType(tag):
@@ -25,3 +28,12 @@ def getTankRole(role):
 
 def mapInterval(value, fromMin, fromMax, toMin, toMax):
   return (value - fromMin) * (toMax - toMin) / (fromMax - fromMin) + toMin
+
+def getPlayerVehicle(player=BigWorld.player()):
+
+  if hasattr(player, 'playerVehicleID') and player.playerVehicleID is not None:
+    entity = BigWorld.entity(player.playerVehicleID)
+    if entity is not None and isinstance(entity, Vehicle) and entity.isPlayerVehicle:
+      return entity
+
+  return None

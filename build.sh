@@ -23,6 +23,7 @@ cd ../
 
 mkdir -p ./build/res/gui/flash
 find ./as3/bin -name "*.swf" -exec cp {} ./build/res/gui/flash/ \;
+cp -r ./as3/assets ./build/res/gui/flash/wotstatPositionsAssets
 
 # Set version
 configPath="./build/res/scripts/client/gui/mods/wotstat_positions/common/Config.py"
@@ -53,7 +54,7 @@ rm -rf $folder
 zip -dvr -0 -X $folder res -i "*.pyc"
 zip -dvr -0 -X $folder res -i "*.swf"
 zip -vr -0 -X $folder meta.xml
-# zip -vr -0 -X $folder res -i "*.png"
+zip -vr -0 -X $folder res -i "*.png"
 
 cd ../
 cp ./build/$folder $folder
