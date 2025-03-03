@@ -9,7 +9,7 @@ from gui import InputHandler
 import Keys
 
 from ..common.Logger import Logger
-from ..common.Settings import Settings, SettingsKeys, ShowVariants
+from ..common.Settings import Settings, SettingsKeys, ShowVariants, OverlayShowVariants
 from ..common.ExceptionHandling import SendExceptionEvent, withExceptionHandling
 from ..common.BattleMessages import showPlayerMessage
 from ..common.Notifier import Notifier
@@ -17,9 +17,10 @@ from ..common.i18n import t
 from .utils import shortTankType, getTankType, getTankRole, getPlayerVehicle
 from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
-from .MinimapOverlay import MinimapOverlay
+from .MinimapOverlay import MinimapOverlay, OverlayVisibilityMode
 from ..constants import ServerCommands as Commands
-from . import IPositionDrawer, IPositionRequester, PositionPoint, PositionArea, LicenseManager, Heatmap, Spots  # noqa: F401
+from . import IPositionDrawer, IPositionRequester, PositionPoint, LicenseManager, Heatmap, Spots  # noqa: F401
+from EyeDisplayProcessor import EyeDisplayProcessor
 
 
 logger = Logger.instance()
@@ -37,6 +38,7 @@ class PositionRequester(IPositionRequester):
     # type: (str, IPositionDrawer, LicenseManager.LicenseManager) -> None
 
     self.__drawer = drawer
+    self.__eyeDisplayProcessor = EyeDisplayProcessor(self.__drawer)
     self.__serverUrl = serverUrl
     self.__lastRequestTime = 0
     self.__getDrawerReadyRetryCount = 0
@@ -46,6 +48,7 @@ class PositionRequester(IPositionRequester):
     self.__callbackID = None
     self.__isEnable = False
     self.__isPaused = False
+    self.__isLoading = False
     self.__lastResponse = None # type: PositionsResponse
     self.__altPressed = False
 
@@ -63,6 +66,7 @@ class PositionRequester(IPositionRequester):
   def start(self):
     self.__isEnable = True
     self.__isPaused = False
+    self.__isLoading = False
     self.__lastRequestTime = 0
     self.__lastReportTime = 0
     self.__getDrawerReadyRetryCount = 0
@@ -172,6 +176,10 @@ class PositionRequester(IPositionRequester):
     if self.__isPaused:
       logger.debug('Request loop is paused')
       return
+    
+    if self.__isLoading:
+      logger.debug('Request is still loading')
+      return
 
     player = BigWorld.player()
 
@@ -199,7 +207,7 @@ class PositionRequester(IPositionRequester):
       self.__lastPlayerVehicle = None
     
     battleTime = self.__battleTime()
-    if battleTime <= -10000:
+    if battleTime <= -10002:
       logger.debug('Battle is still loading')
       return
     
@@ -255,10 +263,13 @@ class PositionRequester(IPositionRequester):
       'enemyLevels': [v.level for v in enemyVehicles if v],
     }
 
+    self.__isLoading = True
     BigWorld.fetchURL(self.__serverUrl + '/api/v2/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
 
   @withExceptionHandling()
   def __onResponse(self, data):
+    self.__isLoading = False
+    
     if data.responseCode != 200:
       logger.error('Response status is not 200: %s' % data.responseCode)
       return
@@ -324,6 +335,8 @@ class PositionRequester(IPositionRequester):
         overlay.setupPopularHeatmap(self.__lastResponse.getPopularHeatmap())
         overlay.setupSpotPoints(self.__lastResponse.getSpotPoints())
         
+      self.__eyeDisplayProcessor.setupSpotPoints(self.__lastResponse.getSpotPoints())
+        
       self.__redraw()
  
   def __redraw(self):
@@ -338,8 +351,7 @@ class PositionRequester(IPositionRequester):
 
     response = self.__lastResponse
     
-    # if self.__shouldDraw(SettingsKeys.SHOW_AREA):
-    #   self.__drawer.drawPolygons(response.getPolygons())
+    overlay = MinimapOverlay.instance()
 
     if self.__shouldDraw(SettingsKeys.SHOW_MINIMAP_MARKERS):
       self.__drawer.drawPoints(response.getPoints())
@@ -353,14 +365,37 @@ class PositionRequester(IPositionRequester):
 
       if not self.__shouldDraw(SettingsKeys.SHOW_IDEAL_MARKER):
         self.__drawer.drawMarkers3D(response.getIdealPoints())
-        
-    # if True and MinimapOverlay.instance():
-    #   MinimapOverlay.instance().drawHeatmap(response.getHeatmap())
+    
+    self.__eyeDisplayProcessor.setVisibility(self.__shouldDraw(SettingsKeys.SHOW_EYE_MARKERS))
+    self.__eyeDisplayProcessor.redraw()
+    
+    if overlay:
+      overlay.setHeatmapVisible(self.__shouldDraw(SettingsKeys.SHOW_HEATMAP))
+      overlay.setPopularHeatmapVisible(self.__shouldDraw(SettingsKeys.SHOW_POPULAR_HEATMAP))
+      overlay.setVehicleShouldDropSpotRays(settings.get(SettingsKeys.VEHICLE_SPOT_RAYS))
+      overlay.setMouseShouldDropSpotRays(settings.get(SettingsKeys.MOUSE_SPOT_RAYS))
+      overlay.setSpotPointsVisible(self.__overlayMode(SettingsKeys.SHOW_SPOT_POINTS))
+      overlay.setMiniSpotPointsVisible(self.__overlayMode(SettingsKeys.SHOW_MINI_SPOT_POINTS))
+      
 
   def __shouldDraw(self, key):
     variant = settings.get(key)
     return variant == ShowVariants.ALWAYS or \
       (variant == ShowVariants.ON_ALT and self.__altPressed)
+      
+  def __overlayMode(self, key):
+    variant = settings.get(key)
+    
+    if variant == OverlayShowVariants.ALWAYS:
+      return OverlayVisibilityMode.ALWAYS
+    
+    if variant == OverlayShowVariants.ON_ALT and self.__altPressed:
+      return OverlayVisibilityMode.ALWAYS
+    
+    if variant == OverlayShowVariants.MOUSE_OVER:
+      return OverlayVisibilityMode.MOUSE_OVER
+    
+    return OverlayVisibilityMode.NEVER
 
   def __onArenaPeriodChange(self, obj, period, periodEndTime, periodLength, *a, **k):
     if period is ARENA_PERIOD.BATTLE:
@@ -403,39 +438,6 @@ class PositionsResponse(object):
     points = self.positions['idealPoints']
     return PositionsResponse.__parsePointsList(points)
 
-  def getPolygons(self):
-    if 'positions' not in self.data:
-      return []
-    
-    positions = self.data['positions']
-
-    if 'polygons' not in positions:
-      return []
-    
-    polygons = positions['polygons']
-    if not isinstance(polygons, list):
-      return []
-    
-    parsed = []
-
-    for polygon in polygons:
-      if 'efficiency' not in polygon or 'area' not in polygon: continue
-
-      area = polygon['area']
-      if not isinstance(area, list): continue
-
-      parsedArea = []
-      for point in area:
-        if not isinstance(point, list) or len(point) != 2: continue
-
-        x = float(point[0])
-        y = float(point[1])
-        parsedArea.append((x, y))
-
-      parsed.append(PositionArea(polygon['efficiency'], parsedArea))
-      
-    return parsed
-  
   def getHeatmap(self):
     return self.__parseHeatmap('heatmap')
   
@@ -470,7 +472,6 @@ class PositionsResponse(object):
       parsed.append(Spots.Point((float(p[0]), float(p[1]), float(p[2])), parsedHits))
       
     return Spots(parsed)
-  
   
   def __parseHeatmap(self, name):
     if not self.positions: return Heatmap([], 0)

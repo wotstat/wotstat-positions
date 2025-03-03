@@ -12,12 +12,12 @@ from gui.Scaleform.genConsts.BATTLE_VIEW_ALIASES import BATTLE_VIEW_ALIASES
 from frameworks.wulf import WindowLayer
 from Math import Vector2, Vector3, Vector4, createTranslationMatrix
 from gui.battle_control import minimap_utils
+from helpers.dependency import instance
 
 from ..common.Logger import Logger
-from ..common.Settings import Settings, SettingsKeys, SettingsConstants
+from ..common.Settings import Settings
 from ..common.ExceptionHandling import withExceptionHandling
-from .utils import mapInterval
-from . import IPositionDrawer, PositionPoint, PositionArea  # noqa: F401
+from . import IPositionDrawer, PositionPoint, Spots # noqa: F401
 
 logger = Logger.instance()
 settings = Settings.instance()
@@ -52,10 +52,12 @@ class MarkerDrawer(IPositionDrawer):
   } # type: Dict[str, List[Marker]]
 
   __worldMarkers = {
-    MARKER_SYMBOL_NAME.NAVIGATION_MARKER: []
+    MARKER_SYMBOL_NAME.NAVIGATION_MARKER: [],
+    MARKER_SYMBOL_NAME.STATIC_OBJECT_MARKER: []
   } # type: Dict[str, List[WorldMarker]]
   __freeWorldMarkers = {
-    MARKER_SYMBOL_NAME.NAVIGATION_MARKER: []
+    MARKER_SYMBOL_NAME.NAVIGATION_MARKER: [],
+    MARKER_SYMBOL_NAME.STATIC_OBJECT_MARKER: []
   } # type: Dict[str, List[WorldMarker]]
 
 
@@ -111,7 +113,7 @@ class MarkerDrawer(IPositionDrawer):
 
     return True
 
-
+  @withExceptionHandling()
   def drawPoints(self, points):
     # type: (List[PositionPoint]) -> None
     
@@ -122,30 +124,7 @@ class MarkerDrawer(IPositionDrawer):
       if marker:
         marker.setScale(efficiency)
 
-  def drawPolygons(self, polygons):
-    # type: (List[PositionArea]) -> None
-
-    density = settings.get(SettingsKeys.AREA_DENSITY)
-    step = int(mapInterval(density, SettingsConstants.DENSITY_MIN, SettingsConstants.DENSITY_MAX, MAX_AREA_STEP, MIN_AREA_STEP))
-    scaleFactor = mapInterval(step, MIN_AREA_STEP, MAX_AREA_STEP, 0.4, 0.8)
-
-    boundingBox = BigWorld.player().arena.arenaType.boundingBox
-    x_min, y_min = boundingBox[0]
-    x_max, y_max = boundingBox[1]
-
-    xRange = range(int(x_min / step) * step, int(x_max / step) * step, step)
-    yRange = range(int(y_min / step) * step, int(y_max / step) * step, step)
-
-    line = 0
-    for x in xRange:
-      line += 1
-      offset = step * 0.5 * (line % 2)
-      for y in yRange:
-        for polygon in polygons:
-          if polygon.isPointInPolygon((x, y)):
-            self.__createPointMarker((x, y + offset), green=True, scale=polygon.efficiency * scaleFactor)
-            break
-
+  @withExceptionHandling()
   def drawIdealPoints(self, points):
     # type: (List[PositionPoint]) -> None
 
@@ -155,28 +134,67 @@ class MarkerDrawer(IPositionDrawer):
       if markerMinimap:
         markerMinimap.setScale(1)
   
+  eyeMarkers = []
+  @withExceptionHandling()
+  def drawEyeMarkers(self, points):
+    # type: (List[Spots.Point]) -> None
+    
+    for marker in self.eyeMarkers:
+      self.clearMarker(marker)
+      
+    self.eyeMarkers = []
+    
+    for point in points:
+      for ray in point.hits:
+        position = [ray[0], ray[1]]
+        marker = self.__createWorldMarker(position, -1, MARKER_SYMBOL_NAME.STATIC_OBJECT_MARKER)
+        marker.invokeMarker('init', ['eye', 0, 720, -1, '', 'green'])
+        marker.setMinScale(30)
+        self.eyeMarkers.append(marker)
+  
+  @withExceptionHandling()
   def drawMarkers3D(self, points):
     # type: (List[PositionPoint]) -> None
     for point in points:
       position = point.position
-      marker = self.__createWorldMarker(position, MARKER_SYMBOL_NAME.NAVIGATION_MARKER)
+      marker = self.__createWorldMarker(position, 0, MARKER_SYMBOL_NAME.NAVIGATION_MARKER)
       if marker:
         marker.setRenderInfo(MIN_SCALE, BOUNDS, INNER_BOUNDS, CULL_DISTANCE, BOUNDS_MIN_SCALE)
         marker.setLocationOffset(MIN_Y_OFFSET, MAX_Y_OFFSET, DISTANCE_FOR_MIN_Y_OFFSET, MAX_Y_BOOST, BOOST_START)
 
+  @withExceptionHandling()
+  def clearMarker(self, marker):
+    # type: (Marker | WorldMarker) -> None
+  
+    if isinstance(marker, Marker):
+      markerType = marker.markerType()
+      if marker in self.__markers[markerType] and marker not in self.__freeMarkers[markerType]:
+        self.__freeMarkers[markerType].append(marker)
+        marker.setActive(False)
+      
+    if isinstance(marker, WorldMarker):
+      markerType = marker.markerType()
+      if marker in self.__worldMarkers[markerType] and marker not in self.__freeWorldMarkers[markerType]:
+        self.__freeWorldMarkers[markerType].append(marker)
+        marker.setActive(False)
+
+  @withExceptionHandling()
   def clear(self):
     for key, value in self.__markers.items():
       for marker in value:
         marker.setActive(False)
-
-      self.__freeMarkers[key] = list(value)
+        
+        if marker not in self.__freeMarkers[key]:
+          self.__freeMarkers[key].append(marker)
 
     for key, value in self.__worldMarkers.items():
       for marker in value:
         marker.setActive(False)
       
-      self.__freeWorldMarkers[key] = list(value)
+        if marker not in self.__freeWorldMarkers[key]:
+          self.__freeWorldMarkers[key].append(marker)
 
+  @withExceptionHandling()
   def reset(self):
     for key in self.__markers.keys():
       self.__markers[key] = []
@@ -189,6 +207,7 @@ class MarkerDrawer(IPositionDrawer):
     self.__minimap = None
     self.__markerManager = None
 
+  @withExceptionHandling()
   def __createMarker(self, position, markerType, container, scale=1.0, active=True):
     # type: (Tuple[float, float], str, str, float, bool) -> Marker
     
@@ -218,14 +237,9 @@ class MarkerDrawer(IPositionDrawer):
 
     return marker
   
-  def __createPointMarker(self, position, green=True, scale=1.0, active=True):
-    # type: (Tuple[float, float], bool, float, bool) -> Marker
-    marker = self.__createMarker(position, ENTRY_SYMBOL_NAME.VEHICLE, CONTAINER_NAME.ALIVE_VEHICLES, scale, active)
-    if marker:
-      marker.invoke('setVehicleInfo', 777, 'mediumTank', '', 'ally' if green else 'enemy', '')
-
-  def __createWorldMarker(self, position, markerType, minimapMarker=None, active=True):
-    # type: (Tuple[float, float], str, Marker | None, bool) -> WorldMarker
+  @withExceptionHandling()
+  def __createWorldMarker(self, position, yOffset, markerType, minimapMarker=None, active=True):
+    # type: (Tuple[float, float], float, str, Marker | None, bool) -> WorldMarker
 
     markers = self.__freeWorldMarkers[markerType]
     if len(markers) > 0:
@@ -242,7 +256,7 @@ class MarkerDrawer(IPositionDrawer):
       return
     
     logger.debug('Create new world marker: %s' % str(position))
-    marker = WorldMarker(position, markerType, self.__markerManager, active)
+    marker = WorldMarker(position, yOffset, markerType, self.__markerManager, active)
     marker.setupMinimapMarker(minimapMarker)
     self.__worldMarkers[markerType].append(marker)
 
@@ -261,6 +275,9 @@ class Marker():
 
     self.handle = self.__minimap.addEntry(self.__markerType, self.__container, self.__createMatrix(),
                                           active=active, transformProps=TRANSFORM_FLAG.FULL)
+
+  def markerType(self):
+    return self.__markerType
 
   def setPosition(self, position):
     # type: (Tuple[float, float]) -> None
@@ -296,10 +313,11 @@ class WorldMarker():
 
   __MARKER_TYPE_BY_SYMBOL = {
     MARKER_SYMBOL_NAME.NAVIGATION_MARKER: CommonMarkerType.LOCATION,
+    MARKER_SYMBOL_NAME.STATIC_OBJECT_MARKER: CommonMarkerType.NORMAL
   }
 
-  def __init__(self, position, markerSymbol, manager, active=True):
-    # type: (Tuple[float, float], str, MarkersManager, bool) -> WorldMarker
+  def __init__(self, position, yOffset, markerSymbol, manager, active=True):
+    # type: (Tuple[float, float], float, str, MarkersManager, bool) -> WorldMarker
 
     self.__position = position
     self.__markerSymbol = markerSymbol
@@ -308,6 +326,9 @@ class WorldMarker():
 
     matrix = createTranslationMatrix(self.__getTerrainHeightAt(position))
     self.handle = self.__manager.createMarker(self.__markerSymbol, matrix, active, self.__MARKER_TYPE_BY_SYMBOL[self.__markerSymbol])
+
+  def markerType(self):
+    return self.__markerSymbol
 
   def setupMinimapMarker(self, marker):
     # type: (Marker) -> None
@@ -339,6 +360,13 @@ class WorldMarker():
 
   def setLocationOffset(self, minYOffset, maxYOffset, distanceForMinYOffset, maxBoost, boostStart):
     self.__manager.setMarkerLocationOffset(self.handle, minYOffset, maxYOffset, distanceForMinYOffset, maxBoost, boostStart)
+  
+  def invokeMarker(self, *signature):
+    # type: (str, *Any) -> None
+    self.__manager.invokeMarker(self.handle, *signature)
+    
+  def setMinScale(self, scale):
+    self.__manager.setMarkerMinScale(self.handle, scale)
   
   def setSticky(self, sticky):
     # type: (bool) -> None

@@ -14,6 +14,11 @@ package wotstat.positions {
 
   public class MinimapOverlay extends AbstractView {
 
+    private static const VISIBILITY_ALWAYS:String = 'ALWAYS';
+    private static const VISIBILITY_MOUSE_OVER:String = 'MOUSE_OVER';
+    private static const VISIBILITY_NEVER:String = 'NEVER';
+
+    private const SPOT_POINT_SCALE_THRESHOLD:Number = 0.75;
     private const MOUSE_DIRECTION_THRESHOLD:Number = 0.04;
     private const VEHICLE_DIRECTION_THRESHOLD:Number = 0.04;
 
@@ -21,10 +26,12 @@ package wotstat.positions {
 
     private var isInitialized:Boolean = false;
     private var spotPoints:Sprite = null;
+    private var miniSpotPoints:Sprite = null;
     private var spotDirections:Sprite = null;
 
+    private var minimapContainer:Sprite = null;
     private var heatmap:Heatmap = new Heatmap(0xFFFF00, 250, -1);
-    private var popularHeatmap:Heatmap = new Heatmap(0x00FFFF, 250, -1);
+    private var popularHeatmap:Heatmap = new Heatmap(0x62f4ff, 250, -1);
 
     private var overlayWidth:Number = 1;
     private var overlayHeight:Number = 1;
@@ -33,7 +40,14 @@ package wotstat.positions {
     private var spotPointsData:Vector.<Object> = new Vector.<Object>();
     private var spotPointImage:Image = new Image();
 
+    private var spotPointsDisplayMode:String = VISIBILITY_ALWAYS;
+    private var miniSpotPointsDisplayMode:String = VISIBILITY_MOUSE_OVER;
+
+    private var mouseShouldDropSpotRays:Boolean = true;
+    private var vehicleShouldDropSpotRays:Boolean = true;
+
     private var vehiclePosition:Array = [0, 0];
+    private var lastMouseOverMinimap:Boolean = false;
 
     public function MinimapOverlay() {
       super();
@@ -65,6 +79,8 @@ package wotstat.positions {
 
           spotPoints = new Sprite();
           spotPoints.cacheAsBitmap = true;
+          miniSpotPoints = new Sprite();
+          miniSpotPoints.cacheAsBitmap = true;
           spotDirections = new Sprite();
           isInitialized = true;
 
@@ -74,23 +90,29 @@ package wotstat.positions {
             minimap.entriesContainer.addChildAt(popularHeatmap, index);
             minimap.entriesContainer.addChildAt(heatmap, index + 1);
             minimap.entriesContainer.addChildAt(spotDirections, index + 2);
-            minimap.entriesContainer.addChildAt(spotPoints, index + 3);
+            minimap.entriesContainer.addChildAt(miniSpotPoints, index + 3);
+            minimap.entriesContainer.addChildAt(spotPoints, index + 4);
+
+            minimapContainer = minimap.background;
 
             overlayWidth = minimap.background.width;
             overlayHeight = minimap.background.height;
 
-            heatmap.x = spotPoints.x = popularHeatmap.x = spotDirections.x = -overlayWidth / 2;
-            heatmap.y = spotPoints.y = popularHeatmap.y = spotDirections.y = -overlayHeight / 2;
+            heatmap.x = spotPoints.x = popularHeatmap.x = spotDirections.x = miniSpotPoints.x = -overlayWidth / 2;
+            heatmap.y = spotPoints.y = popularHeatmap.y = spotDirections.y = miniSpotPoints.y = -overlayHeight / 2;
           }
           else if (battlePage.minimap is EpicMinimap) {
-            var eipcMinimap:EpicMinimap = battlePage.minimap as EpicMinimap;
-            eipcMinimap.background.addChild(popularHeatmap);
-            eipcMinimap.background.addChild(heatmap);
-            eipcMinimap.background.addChild(spotDirections);
-            eipcMinimap.background.addChild(spotPoints);
+            var epicMinimap:EpicMinimap = battlePage.minimap as EpicMinimap;
+            epicMinimap.background.addChild(popularHeatmap);
+            epicMinimap.background.addChild(heatmap);
+            epicMinimap.background.addChild(spotDirections);
+            epicMinimap.background.addChild(miniSpotPoints);
+            epicMinimap.background.addChild(spotPoints);
 
-            overlayHeight = eipcMinimap.background.originalHeight;
-            overlayWidth = eipcMinimap.background.originalWidth;
+            minimapContainer = epicMinimap.entriesContainer;
+
+            overlayHeight = epicMinimap.background.originalHeight;
+            overlayWidth = epicMinimap.background.originalWidth;
           }
 
           heatmap.setSize(overlayWidth, overlayHeight);
@@ -153,27 +175,100 @@ package wotstat.positions {
       redrawSpotDirections();
     }
 
+    public function as_setHeatmapLimit(limit:uint):void {
+      if (heatmap)
+        heatmap.setLimit(limit);
+
+      if (popularHeatmap)
+        popularHeatmap.setLimit(limit);
+    }
+
+    public function as_setHeatmapVisible(visible:Boolean):void {
+      if (heatmap == null)
+        return;
+
+      heatmap.visible = visible;
+    }
+
+    public function as_setPopularHeatmapVisible(visible:Boolean):void {
+      if (popularHeatmap == null)
+        return;
+
+      popularHeatmap.visible = visible;
+    }
+
+    public function as_setSpotPointsVisible(mode:String):void {
+      if (spotPoints == null)
+        return;
+
+      spotPointsDisplayMode = mode;
+      updateSpotPointsVisibility();
+      redrawSpotDirections();
+    }
+
+    public function as_setMiniSpotPointsVisible(mode:String):void {
+      if (miniSpotPoints == null)
+        return;
+
+      miniSpotPointsDisplayMode = mode;
+      updateSpotPointsVisibility();
+      redrawSpotDirections();
+    }
+
+    public function as_setVehicleShouldDropSpotRays(visible:Boolean):void {
+      vehicleShouldDropSpotRays = visible;
+      redrawSpotDirections();
+    }
+
+    public function as_setMouseShouldDropSpotRays(visible:Boolean):void {
+      mouseShouldDropSpotRays = visible;
+      redrawSpotDirections();
+    }
+
+    private function updateSpotPointsVisibility():void {
+      if (spotPoints == null || miniSpotPoints == null)
+        return;
+
+      miniSpotPoints.visible = miniSpotPointsDisplayMode == VISIBILITY_ALWAYS ||
+        (miniSpotPointsDisplayMode == VISIBILITY_MOUSE_OVER && lastMouseOverMinimap);
+
+      spotPoints.visible = spotPointsDisplayMode == VISIBILITY_ALWAYS ||
+        (spotPointsDisplayMode == VISIBILITY_MOUSE_OVER && lastMouseOverMinimap) || miniSpotPoints.visible;
+    }
+
     private function convert(x:Number, y:Number):Array {
       return [x * overlayWidth, overlayHeight - y * overlayHeight];
     }
 
+    private function drawSpotPoint(ctx:Graphics, x:Number, y:Number, weight:Number):void {
+      const targetWidth:Number = 15 * weight;
+      const scale:Number = targetWidth / spotPointImage.bitmapData.width;
+      const offsetX:Number = x - targetWidth / 2;
+      const offsetY:Number = y - targetWidth / 2;
+
+      const matrix:Matrix = new Matrix();
+      matrix.scale(scale, scale);
+      matrix.translate(offsetX, offsetY);
+
+      ctx.beginBitmapFill(spotPointImage.bitmapData, matrix, false, true);
+      ctx.drawRect(offsetX, offsetY, targetWidth, targetWidth);
+      ctx.endFill();
+    }
+
     private function redrawSpotPoints():void {
-      var ctx:Graphics = spotPoints.graphics;
-      ctx.clear();
+      var ctxB:Graphics = spotPoints.graphics;
+      ctxB.clear();
+
+      var ctxM:Graphics = miniSpotPoints.graphics;
+      ctxM.clear();
 
       for (var i:int = 0; i < spotPointsData.length; i++) {
-        const targetWidth:Number = 15 * spotPointsData[i][2];
-        const scale:Number = targetWidth / spotPointImage.bitmapData.width;
-        const offsetX:Number = spotPointsData[i][0] - targetWidth / 2;
-        const offsetY:Number = spotPointsData[i][1] - targetWidth / 2;
-
-        const matrix:Matrix = new Matrix();
-        matrix.scale(scale, scale);
-        matrix.translate(offsetX, offsetY);
-
-        ctx.beginBitmapFill(spotPointImage.bitmapData, matrix, false, true);
-        ctx.drawRect(offsetX, offsetY, targetWidth, targetWidth);
-        ctx.endFill();
+        drawSpotPoint(
+            spotPointsData[i][2] > SPOT_POINT_SCALE_THRESHOLD ? ctxB : ctxM,
+            spotPointsData[i][0],
+            spotPointsData[i][1],
+            spotPointsData[i][2]
+          );
       }
     }
 
@@ -183,6 +278,9 @@ package wotstat.positions {
 
       var ctx:Graphics = spotDirections.graphics;
       ctx.clear();
+
+      if (!mouseShouldDropSpotRays && !vehicleShouldDropSpotRays)
+        return;
 
       var x:Number = spotPoints.mouseX / overlayWidth;
       var y:Number = spotPoints.mouseY / overlayHeight;
@@ -199,16 +297,16 @@ package wotstat.positions {
         const mouseDistanceSqr:Number = Math.pow(x - pX, 2) + Math.pow(y - pY, 2);
         const vehicleDistanceSqr:Number = Math.pow(vehiclePosition[0] - pX, 2) + Math.pow(vehiclePosition[1] - pY, 2);
 
-        if (mouseDistanceSqr > mouseThresholdSqr && vehicleDistanceSqr > vehicleThresholdSqr)
+        if ((mouseDistanceSqr > mouseThresholdSqr || !mouseShouldDropSpotRays) &&
+            (vehicleDistanceSqr > vehicleThresholdSqr || !vehicleShouldDropSpotRays))
           continue;
-
 
         const mouseDistance:Number = Math.sqrt(mouseDistanceSqr);
         const vehicleDistance:Number = Math.sqrt(vehicleDistanceSqr);
 
         const alpha:Number = Math.max(
-            Math.min(1, 1 - Math.max(0, mouseDistance - 0.02) / 0.02),
-            Math.min(1, 1 - Math.max(0, vehicleDistance - 0.02) / 0.02)
+            Math.min(mouseShouldDropSpotRays ? 1 : 0, 1 - Math.max(0, mouseDistance - 0.02) / 0.02),
+            Math.min(vehicleShouldDropSpotRays ? 1 : 0, 1 - Math.max(0, vehicleDistance - 0.02) / 0.02)
           );
 
         for (var j:int = 0; j < hit.length; j++) {
@@ -217,17 +315,29 @@ package wotstat.positions {
           ctx.moveTo(pX * overlayWidth, pY * overlayHeight);
           ctx.lineTo(spot[0], spot[1]);
         }
+
+        ctx.lineStyle();
+        if (spotPointsData[i][2] > SPOT_POINT_SCALE_THRESHOLD && !spotPoints.visible ||
+            spotPointsData[i][2] <= SPOT_POINT_SCALE_THRESHOLD && !miniSpotPoints.visible)
+          drawSpotPoint(ctx, spotPointsData[i][0], spotPointsData[i][1], spotPointsData[i][2]);
       }
     }
 
     private function onMouseMove(e:MouseEvent):void {
-      var x:Number = spotPoints.mouseX / overlayWidth;
-      var y:Number = spotPoints.mouseY / overlayHeight;
+      const x:Number = minimapContainer.mouseX / minimapContainer.width;
+      const y:Number = minimapContainer.mouseY / minimapContainer.height;
 
-      if (x < 0 || x > 1 || y < 0 || y > 1)
-        return;
+      const mouseOverMinimap:Boolean = x >= 0 && x <= 1 && y >= 0 && y <= 1;
+      const isChanged:Boolean = lastMouseOverMinimap != mouseOverMinimap;
+      lastMouseOverMinimap = mouseOverMinimap;
 
-      this.redrawSpotDirections();
+      if (isChanged || mouseOverMinimap) {
+        redrawSpotDirections();
+      }
+
+      if (isChanged) {
+        updateSpotPointsVisibility();
+      }
     }
   }
 }

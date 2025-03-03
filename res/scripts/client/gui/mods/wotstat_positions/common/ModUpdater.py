@@ -12,7 +12,7 @@ from helpers import getShortClientVersion
 from .Logger import Logger
 from .Notifier import Notifier
 from .ExceptionHandling import withExceptionHandling
-from .i18n import t
+from .i18n import has, t
 
 GH_HEADERS = {
   'X-GitHub-Api-Version': '2022-11-28',
@@ -146,6 +146,11 @@ class ModUpdater(object):
     versionHistory = [
       '1.0.0',
       '1.0.1',
+      '1.0.2',
+      '1.0.3',
+      '1.0.4',
+      '1.0.5',
+      '2.0.0-b'
     ]
 
     logger.debug('Show release notes: %s' % lastVersion)
@@ -157,7 +162,7 @@ class ModUpdater(object):
     lastVersionIndex = versionHistory.index(lastVersion)
     currentVersionIndex = versionHistory.index(self.currentVersion) if self.currentVersion in versionHistory else len(versionHistory) - 1
     
-    notes = [[t('releaseNotes:%s' % version), version] for version in versionHistory[(lastVersionIndex + 1):(currentVersionIndex + 1)]]
+    notes = [[t('releaseNotes:%s' % version), version] for version in versionHistory[(lastVersionIndex + 1):(currentVersionIndex + 1)] if has('releaseNotes:%s' % version)]
 
     if len(notes) == 0:
       return

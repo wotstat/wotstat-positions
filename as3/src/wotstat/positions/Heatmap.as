@@ -30,6 +30,10 @@ package wotstat.positions {
       targetHeight = height;
     }
 
+    public function setLimit(limit:int):void {
+      this.limit = limit;
+    }
+
     public function setupHeatmap(x:Array, y:Array, weight:Array, multiplier:Number):void {
       if (x.length != y.length || x.length != weight.length || y.length != weight.length)
         return;

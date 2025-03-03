@@ -11,13 +11,29 @@ from gui.Scaleform.framework.application import AppEntry
 from gui.shared import events, EVENT_BUS_SCOPE, g_eventBus
 from Avatar import PlayerAvatar
 
+from ..common.Settings import Settings, SettingsKeys, HeatmapLimitVariants
 from ..common.Logger import Logger
 from .utils import getPlayerVehicle
+from ..common.ExceptionHandling import withExceptionHandling
 from . import Spots, Heatmap
 
 logger = Logger.instance()
 
 minimapOverlayInstance = None # type: MinimapOverlay
+
+class OverlayVisibilityMode:
+  ALWAYS = 'ALWAYS'
+  MOUSE_OVER = 'MOUSE_OVER'
+  NEVER = 'NEVER'
+
+HEATMAP_LIMIT_VALUES = {
+  HeatmapLimitVariants.SMALL: 1000,
+  HeatmapLimitVariants.MEDIUM: 5000,
+  HeatmapLimitVariants.LARGE: 10000,
+  HeatmapLimitVariants.UNLIMITED: -1
+}
+
+settings = Settings.instance()
 
 class MinimapOverlay(View):
   
@@ -34,6 +50,9 @@ class MinimapOverlay(View):
     self.lastPlayerPosition = None
     self.updatePlayerPositionLoopTimer = None
     
+    heatmapLimit = settings.get(SettingsKeys.HEATMAP_LIMIT)
+    self.as_setHeatmapLimit(HEATMAP_LIMIT_VALUES.get(heatmapLimit, -1))
+    
     self.updatePlayerPositionLoop()
     
   def _destroy(self):
@@ -46,6 +65,7 @@ class MinimapOverlay(View):
       
     return super(MinimapOverlay, self)._destroy()
   
+  @withExceptionHandling()
   def setupSpotPoints(self, spots):
     # type: (Spots) -> None
     minBounds, maxBounds = BigWorld.player().arena.getArenaBB()
@@ -66,19 +86,23 @@ class MinimapOverlay(View):
       
     self.as_setupSpotPoints(points)
   
+  @withExceptionHandling()
   def setupHeatmap(self, heatmap):
     # type: (Heatmap) -> None
     x, y, weight, multiplier = self.prepareHeatmap(heatmap)
     self.as_setupHeatmap(x, y, weight, multiplier)
   
+  @withExceptionHandling()
   def setupPopularHeatmap(self, heatmap):
     # type: (Heatmap) -> None
     x, y, weight, multiplier = self.prepareHeatmap(heatmap)
     self.as_setupPopularHeatmap(x, y, weight, multiplier)
   
+  @withExceptionHandling()
   def clear(self):
     self.as_clear()
   
+  @withExceptionHandling()
   def prepareHeatmap(self, heatmap):
     # type: (Heatmap) -> Tuple[list, list, list]
     minBounds, maxBounds = BigWorld.player().arena.getArenaBB()
@@ -97,6 +121,7 @@ class MinimapOverlay(View):
     multiplier = heatmap.step / max(width, height)
     return x, y, weight, multiplier
 
+  @withExceptionHandling()
   def updatePlayerPositionLoop(self):
     self.updatePlayerPositionLoopTimer = BigWorld.callback(0.1, self.updatePlayerPositionLoop)
     
@@ -110,6 +135,7 @@ class MinimapOverlay(View):
     minBounds, maxBounds = player.arena.getArenaBB()
     
     if not getPlayerVehicle(player): return
+    if not player.isOnArena: return
     
     (x, _, z) = player.getOwnVehiclePosition()
     
@@ -127,7 +153,24 @@ class MinimapOverlay(View):
     y = (z - minBounds[2]) / height
     
     self.as_setRelativeVehiclePosition(x, y)
+  
+  def setHeatmapVisible(self, visible):
+    self.as_setHeatmapVisible(visible)
     
+  def setPopularHeatmapVisible(self, visible):
+    self.as_setPopularHeatmapVisible(visible)
+    
+  def setSpotPointsVisible(self, mode):
+    self.as_setSpotPointsVisible(mode)
+    
+  def setMiniSpotPointsVisible(self, mode):
+    self.as_setMiniSpotPointsVisible(mode)
+    
+  def setVehicleShouldDropSpotRays(self, enabled):
+    self.as_setVehicleShouldDropSpotRays(enabled)
+    
+  def setMouseShouldDropSpotRays(self, enabled):
+    self.as_setMouseShouldDropSpotRays(enabled)
 
   def py_log(self, message):
     logger.info(message)
@@ -146,6 +189,29 @@ class MinimapOverlay(View):
   
   def as_clear(self):
     self.flashObject.as_clear()
+    
+  def as_setHeatmapVisible(self, visible):
+    self.flashObject.as_setHeatmapVisible(visible)
+    
+  def as_setPopularHeatmapVisible(self, visible):
+    self.flashObject.as_setPopularHeatmapVisible(visible)
+    
+  def as_setSpotPointsVisible(self, mode):
+    self.flashObject.as_setSpotPointsVisible(mode)
+    
+  def as_setMiniSpotPointsVisible(self, mode):
+    self.flashObject.as_setMiniSpotPointsVisible(mode)
+    
+  def as_setVehicleShouldDropSpotRays(self, enabled):
+    self.flashObject.as_setVehicleShouldDropSpotRays(enabled)
+    
+  def as_setMouseShouldDropSpotRays(self, enabled):
+    self.flashObject.as_setMouseShouldDropSpotRays(enabled)
+    
+  def as_setHeatmapLimit(self, limit):
+    self.flashObject.as_setHeatmapLimit(limit)
+    
+    
 
 OVERLAY_VIEW = "WOTSTAT_POSITIONS_MINIMAP_OVERLAY_VIEW"
 def setup():
