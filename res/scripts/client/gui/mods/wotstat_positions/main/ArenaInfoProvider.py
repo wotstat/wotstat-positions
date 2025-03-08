@@ -28,6 +28,7 @@ class VehicleInfo():
   def isAlive(self):
     return self.health > 0
 
+# TODO: _BattleFieldCtrl__setEnemyMaxHealth
 class ArenaInfoProvider():
   vehicles = {}  # type: dict[int, VehicleInfo]
   playerTeam = -1

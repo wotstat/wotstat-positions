@@ -25,9 +25,11 @@ package wotstat.positions {
     public var py_log:Function;
 
     private var isInitialized:Boolean = false;
-    private var spotPoints:Sprite = null;
-    private var miniSpotPoints:Sprite = null;
-    private var spotDirections:Sprite = null;
+    private var isRegistered:Boolean = false;
+
+    private var spotPoints:Sprite = new Sprite();
+    private var miniSpotPoints:Sprite = new Sprite();
+    private var spotDirections:Sprite = new Sprite();
 
     private var minimapContainer:Sprite = null;
     private var heatmap:Heatmap = new Heatmap(0xFFFF00, 250, -1);
@@ -46,7 +48,7 @@ package wotstat.positions {
     private var mouseShouldDropSpotRays:Boolean = true;
     private var vehicleShouldDropSpotRays:Boolean = true;
 
-    private var vehiclePosition:Array = [0, 0];
+    private var vehiclePosition:Array = [10000, 10000];
     private var lastMouseOverMinimap:Boolean = false;
 
     public function MinimapOverlay() {
@@ -64,60 +66,95 @@ package wotstat.positions {
 
     override protected function configUI():void {
       super.configUI();
+      spotPoints.cacheAsBitmap = true;
+      miniSpotPoints.cacheAsBitmap = true;
+      setup();
+    }
 
+    private function getBattlePage():BaseBattlePage {
       var viewContainer:MainViewContainer = App.containerMgr.getContainer(LAYER_NAMES.LAYER_ORDER.indexOf(LAYER_NAMES.VIEWS)) as MainViewContainer;
+      if (viewContainer == null)
+        return null;
 
-      if (viewContainer != null && !isInitialized) {
+      for (var i:int = 0; i < viewContainer.numChildren; ++i) {
+        var child:DisplayObject = viewContainer.getChildAt(i);
 
-        for (var i:int = 0; i < viewContainer.numChildren; ++i) {
-          var child:DisplayObject = viewContainer.getChildAt(i);
+        if (child is BaseBattlePage)
+          return child as BaseBattlePage;
+      }
 
-          if (!(child is BaseBattlePage))
-            continue;
+      return null;
+    }
 
-          var battlePage:BaseBattlePage = child as BaseBattlePage;
+    private function setup():void {
+      if (isInitialized || !isRegistered)
+        return;
 
-          spotPoints = new Sprite();
-          spotPoints.cacheAsBitmap = true;
-          miniSpotPoints = new Sprite();
-          miniSpotPoints.cacheAsBitmap = true;
-          spotDirections = new Sprite();
-          isInitialized = true;
+      var battlePage:BaseBattlePage = getBattlePage();
+      if (battlePage == null)
+        return;
 
-          if (battlePage.minimap is Minimap) {
-            var minimap:Minimap = battlePage.minimap as Minimap;
-            var index:int = minimap.entriesContainer.getChildIndex(minimap.entriesContainer.flags);
-            minimap.entriesContainer.addChildAt(popularHeatmap, index);
-            minimap.entriesContainer.addChildAt(heatmap, index + 1);
-            minimap.entriesContainer.addChildAt(spotDirections, index + 2);
-            minimap.entriesContainer.addChildAt(miniSpotPoints, index + 3);
-            minimap.entriesContainer.addChildAt(spotPoints, index + 4);
+      isInitialized = true;
 
-            minimapContainer = minimap.background;
+      if (battlePage.minimap is Minimap) {
+        var minimap:Minimap = battlePage.minimap as Minimap;
+        var index:int = minimap.entriesContainer.getChildIndex(minimap.entriesContainer.flags);
+        minimap.entriesContainer.addChildAt(popularHeatmap, index);
+        minimap.entriesContainer.addChildAt(heatmap, index + 1);
+        minimap.entriesContainer.addChildAt(spotDirections, index + 2);
+        minimap.entriesContainer.addChildAt(miniSpotPoints, index + 3);
+        minimap.entriesContainer.addChildAt(spotPoints, index + 4);
 
-            overlayWidth = minimap.background.width;
-            overlayHeight = minimap.background.height;
+        minimapContainer = minimap.background;
+        overlayWidth = minimap.entriesContainer.flags.width;
+        overlayHeight = minimap.entriesContainer.flags.width;
 
-            heatmap.x = spotPoints.x = popularHeatmap.x = spotDirections.x = miniSpotPoints.x = -overlayWidth / 2;
-            heatmap.y = spotPoints.y = popularHeatmap.y = spotDirections.y = miniSpotPoints.y = -overlayHeight / 2;
-          }
-          else if (battlePage.minimap is EpicMinimap) {
-            var epicMinimap:EpicMinimap = battlePage.minimap as EpicMinimap;
-            epicMinimap.background.addChild(popularHeatmap);
-            epicMinimap.background.addChild(heatmap);
-            epicMinimap.background.addChild(spotDirections);
-            epicMinimap.background.addChild(miniSpotPoints);
-            epicMinimap.background.addChild(spotPoints);
+        heatmap.x = spotPoints.x = popularHeatmap.x = spotDirections.x = miniSpotPoints.x = -overlayWidth / 2;
+        heatmap.y = spotPoints.y = popularHeatmap.y = spotDirections.y = miniSpotPoints.y = -overlayHeight / 2;
 
-            minimapContainer = epicMinimap.entriesContainer;
+      }
+      else if (battlePage.minimap is EpicMinimap) {
+        var epicMinimap:EpicMinimap = battlePage.minimap as EpicMinimap;
+        epicMinimap.background.addChild(popularHeatmap);
+        epicMinimap.background.addChild(heatmap);
+        epicMinimap.background.addChild(spotDirections);
+        epicMinimap.background.addChild(miniSpotPoints);
+        epicMinimap.background.addChild(spotPoints);
 
-            overlayHeight = epicMinimap.background.originalHeight;
-            overlayWidth = epicMinimap.background.originalWidth;
-          }
+        minimapContainer = epicMinimap.entriesContainer;
+        overlayHeight = epicMinimap.background.originalHeight;
+        overlayWidth = epicMinimap.background.originalWidth;
+      }
 
-          heatmap.setSize(overlayWidth, overlayHeight);
-          popularHeatmap.setSize(overlayWidth, overlayHeight);
-        }
+      heatmap.setSize(overlayWidth, overlayHeight);
+      popularHeatmap.setSize(overlayWidth, overlayHeight);
+    }
+
+    private function unsetup():void {
+      if (!isInitialized)
+        return;
+
+      var battlePage:BaseBattlePage = getBattlePage();
+      if (battlePage == null)
+        return;
+
+      isInitialized = false;
+
+      if (battlePage.minimap is Minimap) {
+        var minimap:Minimap = battlePage.minimap as Minimap;
+        minimap.entriesContainer.removeChild(popularHeatmap);
+        minimap.entriesContainer.removeChild(heatmap);
+        minimap.entriesContainer.removeChild(spotDirections);
+        minimap.entriesContainer.removeChild(miniSpotPoints);
+        minimap.entriesContainer.removeChild(spotPoints);
+      }
+      else if (battlePage.minimap is EpicMinimap) {
+        var epicMinimap:EpicMinimap = battlePage.minimap as EpicMinimap;
+        epicMinimap.background.removeChild(popularHeatmap);
+        epicMinimap.background.removeChild(heatmap);
+        epicMinimap.background.removeChild(spotDirections);
+        epicMinimap.background.removeChild(miniSpotPoints);
+        epicMinimap.background.removeChild(spotPoints);
       }
     }
 
@@ -225,6 +262,16 @@ package wotstat.positions {
       redrawSpotDirections();
     }
 
+    public function as_register():void {
+      isRegistered = true;
+      setup();
+    }
+
+    public function as_unregister():void {
+      isRegistered = false;
+      unsetup();
+    }
+
     private function updateSpotPointsVisibility():void {
       if (spotPoints == null || miniSpotPoints == null)
         return;
@@ -324,6 +371,9 @@ package wotstat.positions {
     }
 
     private function onMouseMove(e:MouseEvent):void {
+      if (minimapContainer == null)
+        return;
+
       const x:Number = minimapContainer.mouseX / minimapContainer.width;
       const y:Number = minimapContainer.mouseY / minimapContainer.height;
 

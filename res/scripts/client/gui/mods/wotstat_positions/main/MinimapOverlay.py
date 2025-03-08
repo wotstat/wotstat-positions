@@ -3,6 +3,7 @@ from typing import Tuple
 import BigWorld
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework import g_entitiesFactories, ScopeTemplates, ViewSettings
+from gui.Scaleform.genConsts.BATTLE_VIEW_ALIASES import BATTLE_VIEW_ALIASES
 from frameworks.wulf import WindowLayer
 from gui.shared.personality import ServicesLocator
 from gui.app_loader.settings import APP_NAME_SPACE
@@ -20,6 +21,7 @@ from . import Spots, Heatmap
 logger = Logger.instance()
 
 minimapOverlayInstance = None # type: MinimapOverlay
+shouldRegister = False
 
 class OverlayVisibilityMode:
   ALWAYS = 'ALWAYS'
@@ -54,16 +56,23 @@ class MinimapOverlay(View):
     self.as_setHeatmapLimit(HEATMAP_LIMIT_VALUES.get(heatmapLimit, -1))
     
     self.updatePlayerPositionLoop()
+    if shouldRegister: self.register()
     
   def _destroy(self):
     global minimapOverlayInstance
     minimapOverlayInstance = None
     
-    if self.updatePlayerPositionLoopTimer:
+    if hasattr(self, 'updatePlayerPositionLoopTimer') and self.updatePlayerPositionLoopTimer:
       BigWorld.cancelCallback(self.updatePlayerPositionLoopTimer)
       self.updatePlayerPositionLoopTimer = None
       
     return super(MinimapOverlay, self)._destroy()
+  
+  def register(self):
+    self.as_register()
+  
+  def unregister(self):
+    self.as_unregister()
   
   @withExceptionHandling()
   def setupSpotPoints(self, spots):
@@ -139,7 +148,7 @@ class MinimapOverlay(View):
     
     (x, _, z) = player.getOwnVehiclePosition()
     
-    if self.lastPlayerPosition:
+    if hasattr(self, 'lastPlayerPosition') and self.lastPlayerPosition:
       lastX, lastZ = self.lastPlayerPosition
       distance = sqrt((x - lastX) ** 2 + (z - lastZ) ** 2)
       if distance < 0.5: return
@@ -211,6 +220,11 @@ class MinimapOverlay(View):
   def as_setHeatmapLimit(self, limit):
     self.flashObject.as_setHeatmapLimit(limit)
     
+  def as_register(self):
+    self.flashObject.as_register()
+    
+  def as_unregister(self):
+    self.flashObject.as_unregister()
     
 
 OVERLAY_VIEW = "WOTSTAT_POSITIONS_MINIMAP_OVERLAY_VIEW"
@@ -219,7 +233,7 @@ def setup():
     OVERLAY_VIEW,
     MinimapOverlay,
     "wotstat.positions.swf",
-    WindowLayer.SERVICE_LAYOUT,
+    WindowLayer.WINDOW,
     None,
     ScopeTemplates.GLOBAL_SCOPE,
   )
@@ -235,7 +249,32 @@ def setup():
         logger.error("App not found")
         return
       
-      logger.info("Load overlay view")
-      app.loadView(SFViewLoadParams(OVERLAY_VIEW))
+      def load():
+        logger.info("Load overlay view")
+        app.loadView(SFViewLoadParams(OVERLAY_VIEW))
+        
+      BigWorld.callback(0, load)
+
+  def onComponentRegistered(event):
+    global shouldRegister
+    
+    if event.alias == BATTLE_VIEW_ALIASES.MINIMAP:
+      if minimapOverlayInstance:
+        logger.info("Minimap registered")
+        minimapOverlayInstance.register()
+      else:
+        shouldRegister = True
+      
+  def onComponentUnregistered(event):
+    global shouldRegister
+    
+    if event.alias == BATTLE_VIEW_ALIASES.MINIMAP:
+      shouldRegister = False
+      if minimapOverlayInstance:
+        logger.info("Minimap unregistered")
+        minimapOverlayInstance.unregister()
 
   g_eventBus.addListener(events.AppLifeCycleEvent.INITIALIZED, onAppInitialized, EVENT_BUS_SCOPE.GLOBAL)
+  g_eventBus.addListener(events.ComponentEvent.COMPONENT_REGISTERED, onComponentRegistered, scope=EVENT_BUS_SCOPE.GLOBAL)
+  g_eventBus.addListener(events.ComponentEvent.COMPONENT_UNREGISTERED, onComponentUnregistered, scope=EVENT_BUS_SCOPE.GLOBAL)
+  
