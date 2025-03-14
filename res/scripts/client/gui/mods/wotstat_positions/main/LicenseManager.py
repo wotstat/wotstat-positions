@@ -4,12 +4,15 @@ import json
 
 import BigWorld
 from helpers import getClientLanguage
+from gui import SystemMessages
 
 from ..common.Logger import Logger
 from ..common.Notifier import Notifier
 from ..common.PlayerPrefs import PlayerPrefs
 from ..common.ExceptionHandling import withExceptionHandling
 from ..constants import PlayerPrefsKeys
+from .EnterLicenseWindow import show as showEnterLicenseWindow
+from ..common.i18n import t
 
 LANGUAGE = getClientLanguage()
 
@@ -31,6 +34,7 @@ class LicenseManager(object):
   __heartbeatTimer = None
 
   def __init__(self, url, licenseFilePath):
+    self.__serverUrl = url  + '/api/v1/activation/check/'
     self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
     if LANGUAGE != 'ru':
       self.__activatorPage = '%s/en/request-licence-key/?requestId=' % url
@@ -46,6 +50,10 @@ class LicenseManager(object):
 
   def __targetWSUrl(self):
     return '%s/%s?language=%s' % (self.__wsUrl, self.__uuid, LANGUAGE)
+  
+  @withExceptionHandling()
+  def requestInGameUI(self):
+    showEnterLicenseWindow(self)
   
   @withExceptionHandling()
   def request(self):
@@ -106,6 +114,46 @@ class LicenseManager(object):
   
   def setToken(self, token):
     PlayerPrefs.set(PlayerPrefsKeys.TOKEN, token)
+
+  def processEnterLicense(self, license):
+    
+    def onResponse(data):
+      # type: (BigWorld.PyURLResponse) -> None
+      if data.responseCode == 200:
+        
+        body = data.body
+        if not body:
+          logger.error('Response body is empty')
+          return
+        
+        parsed = None # type: dict
+        try:
+          parsed = json.loads(body)
+        except ValueError:
+          logger.error('Response body is not a valid JSON: %s' % body)
+          return
+        
+        status = parsed.get('status', None)
+        if status and (status is "FIRST_ACTIVATION" or status is "ALREADY_ACTIVATED" or status is "PATREON_ACTIVATED"):
+          logger.info('License activated: %s' % LicenseManager.obfuscate(license))
+          self.setLicense(license)
+        
+        if parsed.get('blocked', False):
+          logger.info('License is blocked')
+          self.blockLicense()
+
+        message = parsed.get('message', None)
+        if message and message.get('text', None):
+          notifier.showNotificationFromData(message)
+          
+      else:
+        logger.error('Failed to activate license, code: %s' % str(data.responseCode))
+        notifier.showNotification(t('enterLicense.serverError') % str(data.responseCode), SystemMessages.SM_TYPE.Error)
+    
+    if not license: return
+    
+    BigWorld.fetchURL(self.__serverUrl + '?key=%s&language=%s' % (license, LANGUAGE), onResponse)
+    logger.info('License entered: %s' % LicenseManager.obfuscate(license))
 
   @withExceptionHandling()
   def __onWebsocketOpened(self, server):

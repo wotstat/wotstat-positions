@@ -1,7 +1,7 @@
 
 import json
 
-import BigWorld
+import BigWorld, Keys
 from helpers import getClientLanguage
 from gui import SystemMessages
 
@@ -57,7 +57,10 @@ class GreetingNotifier():
 
     if event.startswith(POSITION_WOTSTAT_EVENT_ENTER_LICENSE):
       logger.info('Opening license')
-      self.__licenseManager.request()
+      if BigWorld.isKeyDown(Keys.KEY_LALT) or BigWorld.isKeyDown(Keys.KEY_RALT):
+        self.__licenseManager.requestInGameUI()
+      else:
+        self.__licenseManager.request()
     elif event.startswith(POSITION_WOTSTAT_EVENT_RESET_LICENSE):
       logger.info('Resetting license')
       self.__resetLicense()
@@ -65,6 +68,7 @@ class GreetingNotifier():
   def __messageResponse(self, data):
     if data.responseCode != 200:
       logger.error('Greeting response status is not 200: %s' % data.responseCode)
+      notifier.showNotification(t('greeting.serverError.message') % data.responseCode, SystemMessages.SM_TYPE.WarningHeader, None, {'header': t('greeting.serverError.title')})
       return
     
     body = data.body

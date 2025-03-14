@@ -232,7 +232,7 @@ def setup():
   mainViewSettings = ViewSettings(
     OVERLAY_VIEW,
     MinimapOverlay,
-    "wotstat.positions.swf",
+    "wotstat.positions.minimapOverlay.swf",
     WindowLayer.WINDOW,
     None,
     ScopeTemplates.GLOBAL_SCOPE,

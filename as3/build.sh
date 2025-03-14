@@ -1,1 +1,2 @@
 mxmlc -load-config+=build-config.xml src/wotstat/positions/MinimapOverlay.as
+mxmlc -load-config+=build-config.xml --output=bin/wotstat.positions.EnterLicenseWindow.swf src/wotstat/positions/EnterLicenseWindow.as
