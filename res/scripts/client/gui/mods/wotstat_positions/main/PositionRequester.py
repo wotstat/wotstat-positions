@@ -4,6 +4,7 @@ import uuid
 import BigWorld # type: ignore
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
 from gui.Scaleform.genConsts.BATTLE_MESSAGES_CONSTS import BATTLE_MESSAGES_CONSTS
+from Avatar import PlayerAvatar
 from helpers import getClientLanguage
 from gui import InputHandler
 import Keys
@@ -106,7 +107,7 @@ class PositionRequester(IPositionRequester):
     if not self.__lastResponse:
       return
         
-    player = BigWorld.player()
+    player = BigWorld.player() # type: PlayerAvatar
 
     if player is None or not hasattr(player, 'arena'):
       logger.debug('Player is not on arena')
@@ -181,7 +182,7 @@ class PositionRequester(IPositionRequester):
       logger.debug('Request is still loading')
       return
 
-    player = BigWorld.player()
+    player = BigWorld.player() # type: PlayerAvatar
 
     if player is None or not hasattr(player, 'arena'):
       logger.debug('Player is not on arena')
@@ -236,6 +237,7 @@ class PositionRequester(IPositionRequester):
       'id': self.__battleUUID,
       'token': self.__licenseManager.getToken(),
       'license': self.__licenseCache,
+      'player': player.name,
       'language': LANGUAGE,
       'region': AUTH_REALM,
       'mode': ARENA_TAGS[player.arena.bonusType],

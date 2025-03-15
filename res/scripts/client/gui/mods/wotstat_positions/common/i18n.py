@@ -65,7 +65,7 @@ RU = {
   'greeting.serverError.title': 'Мод «Позиции от WotStat»',
   'greeting.serverError.message': 'Не удалось связаться с сервером, код ошибки: %s\n\nПопробуйте позже или обратитесь в службу поддержки в Discord: <a href=\'event:POSITION_WOTSTAT_EVENT_OPEN_URL:https://discord.gg/7K8W9JE6xU\'>@WotStat</a> или на электронную почту: support@wotstat.info',
   'releaseNotes:1.0.1': '• Адаптация для версии %s\n• Адаптация для режима %s\n• Исправлены незначительные ошибки' % (highlight('Lesta 1.27'), highlight('Натиск')),
-  'releaseNotes:2.0.0-b': '<b>ВЕРСИЯ 2.0 БЕТА-ТЕСТ</b>\n\nГлобальное обновление, настоятельно рекомендуется %s с полным списком изменений.\n• Огневые рубежи\n• Направления для стрельбы\n• Тепловые карты\n• Алгоритм определения позиций' % (openurl('ознакомиться', 'https://positions.wotstat.info/whats-new-2')),
+  'releaseNotes:2.0.0': '<b>ВЕРСИЯ 2.0</b>\n\nГлобальное обновление, настоятельно рекомендуется %s с полным списком изменений.\n• Огневые рубежи\n• Направления для стрельбы\n• Тепловые карты\n• Новый алгоритм определения позиций' % (openurl('ознакомиться', 'https://positions.wotstat.info/whats-new-2')),
 }
 
 EN = {
@@ -122,7 +122,7 @@ EN = {
   'greeting.serverError.title': 'Mod \'Positions by WotStat\'',
   'greeting.serverError.message': 'Failed to connect the server, error code: %s\n\nTry again later or contact support in Discord: <a href=\'event:POSITION_WOTSTAT_EVENT_OPEN_URL:https://discord.gg/7K8W9JE6xU\'>@WotStat</a> or by email: support@wotstat.info',
   'releaseNotes:1.0.1': '• Adaptation for version %s\n• Adaptation for mode %s\n• Minor bugs fixed' % (highlight('Lesta 1.27'), highlight('Onslaught')),
-  'releaseNotes:2.0.0-b': '<b>VERSION 2.0 BETA-TEST</b>\n\nGlobal update, it is strongly recommended %s to read the full list of changes.\n• Firing positions\n• Shooting directions\n• Heatmaps\n• Position detection algorithm' % (openurl('read', 'https://positions.wotstat.info/whats-new-2')),
+  'releaseNotes:2.0.0': '<b>VERSION 2.0</b>\n\nGlobal update, it is strongly recommended read the %s.\n• Firing positions\n• Shooting directions\n• Heatmaps\n• Position detection algorithm' % (openurl('full list of changes', 'https://positions.wotstat.info/whats-new-2')),
 }
 
 class I18n(Singleton):
