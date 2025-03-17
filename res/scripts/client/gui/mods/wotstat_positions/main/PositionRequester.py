@@ -265,6 +265,7 @@ class PositionRequester(IPositionRequester):
       'enemyLevels': [v.level for v in enemyVehicles if v],
     }
 
+    logger.info('Requesting positions: %s; for tank: %s, arena: %s, mode: %s' % (params['id'], params['tank'], params['arena'], params['mode']))
     self.__isLoading = True
     BigWorld.fetchURL(self.__serverUrl + '/api/v2/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
 
