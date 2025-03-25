@@ -16,6 +16,13 @@ jobs:
         with:
           python-version: '2.7'
 
+      - name: Install node
+        uses: actions/setup-node@v4
+
+      - name: Install Apache Royale via npm
+        run: |
+          npm install -g @apache-royale/royale-js
+
       - name: mod name
         run: |
           VERSION=${GITHUB_REF_NAME#v}
