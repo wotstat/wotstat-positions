@@ -43,7 +43,7 @@ RU = {
   'settings:reportHotkeyTooltip': '{HEADER}Сообщить об ошибке{/HEADER}{BODY}Нажмите эту клавишу в бою, если видите некорректную позицию{/BODY}',
   'settings:reset': 'Сбросить',
   'settings:never': 'Никогда',
-  'settings:onAlt': 'По нажанитю на Alt',
+  'settings:onAlt': 'По нажатию на Alt',
   'settings:mouseOver': 'При наведении курсора',
   'settings:always': 'Постоянно',
   'settings:small': 'Мало',
