@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
   from .LicenseManager import LicenseManager
 
-CEF_CHANGE_URL_WINDOW = "WOTSTAT_CEF_CHANGE_URL_WINDOW"
+ENTER_LICENSE_WINDOW = "WOTSTAT_POSITIONS_ENTER_LICENSE_WINDOW"
 
 logger = Logger.instance()
 
@@ -39,7 +39,7 @@ class EnterLicenseWindow(AbstractWindowView):
 
 def setup():
   settingsViewSettings = ViewSettings(
-    CEF_CHANGE_URL_WINDOW,
+    ENTER_LICENSE_WINDOW,
     EnterLicenseWindow,
     "wotstat.positions.EnterLicenseWindow.swf",
     WindowLayer.TOP_WINDOW,
@@ -54,4 +54,4 @@ def show(licenseManager):
   
   appLoader = dependency.instance(IAppLoader) # type: IAppLoader
   app = appLoader.getApp() # type: AppEntry
-  app.loadView(SFViewLoadParams(CEF_CHANGE_URL_WINDOW), ctx={ 'licenseManager': licenseManager  })
+  app.loadView(SFViewLoadParams(ENTER_LICENSE_WINDOW), ctx={ 'licenseManager': licenseManager  })
