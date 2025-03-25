@@ -1,7 +1,7 @@
 import json
 import uuid
 
-import BigWorld # type: ignore
+import BigWorld
 from constants import ARENA_BONUS_TYPE, ARENA_GAMEPLAY_NAMES, AUTH_REALM, ARENA_PERIOD
 from gui.Scaleform.genConsts.BATTLE_MESSAGES_CONSTS import BATTLE_MESSAGES_CONSTS
 from Avatar import PlayerAvatar
@@ -107,7 +107,7 @@ class PositionRequester(IPositionRequester):
     if not self.__lastResponse:
       return
         
-    player = BigWorld.player() # type: PlayerAvatar
+    player = BigWorld.player()
 
     if player is None or not hasattr(player, 'arena'):
       logger.debug('Player is not on arena')
