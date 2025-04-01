@@ -18,6 +18,11 @@ class OverlayShowVariants:
   ON_ALT = 2
   ALWAYS = 3
 
+class PreferredServerVariants:
+  AUTO = 0
+  MAIN = 1
+  ALTERNATIVE = 2
+
 class HeatmapLimitVariants:
   SMALL = 0
   MEDIUM = 1
@@ -26,6 +31,7 @@ class HeatmapLimitVariants:
 
 DropdownVariants = [t('settings:never'), t('settings:onAlt'), t('settings:always')]
 OverlayDropdownVariants = [t('settings:never'), t('settings:mouseOver'), t('settings:onAlt'), t('settings:always')]
+PreferredServerDropdownVariants = [t('settings:auto'), t('settings:main'), t('settings:alternative')]
 HeatmapLimitDropdownVariants = [t('settings:small'), t('settings:medium'), t('settings:large'), t('settings:unlimited')]
 
 class SettingsKeys:
@@ -44,6 +50,7 @@ class SettingsKeys:
   VEHICLE_SPOT_RAYS = 'vehicleSpotRays'
   MOUSE_SPOT_RAYS = 'mouseSpotRays'
   HEATMAP_LIMIT = 'heatmapLimit'
+  PREFERRED_SERVER = 'preferredServer'
 
 class Settings(Singleton):
 
@@ -67,6 +74,7 @@ class Settings(Singleton):
     SettingsKeys.SHOW_EYE_MARKERS: ShowVariants.ON_ALT,
     SettingsKeys.VEHICLE_SPOT_RAYS: True,
     SettingsKeys.MOUSE_SPOT_RAYS: True,
+    SettingsKeys.PREFERRED_SERVER: PreferredServerVariants.AUTO,
   }
 
   settings = defaultSettings.copy()
@@ -139,8 +147,8 @@ class Settings(Singleton):
           templates.createSlider(t('settings:interval'), SK.UPDATE_INTERVAL, settings[SK.UPDATE_INTERVAL], 15, 120, 5,
                                  tooltip=t('settings:intervalTooltip'), width=350, format=t('settings:intervalFormat')),
           templates.createCheckbox(t('settings:showInfoMessages'), SK.SHOW_INFO_MESSAGES, settings[SK.SHOW_INFO_MESSAGES], tooltip=t('settings:showInfoMessagesTooltip')),
-          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
-          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
+          templates.createDropdown(t('settings:preferredServer'), SK.PREFERRED_SERVER, PreferredServerDropdownVariants, settings[SK.PREFERRED_SERVER], tooltip=t('settings:preferredServerTooltip')),
+          templates.createEmpty(), templates.createEmpty(), templates.createEmpty(), templates.createEmpty(),
           templates.createHotkey(t('settings:reportHotkey'), SK.REPORT_HOTKEY, settings[SK.REPORT_HOTKEY], tooltip=t('settings:reportHotkeyTooltip')),        
         ]
       }

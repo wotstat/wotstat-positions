@@ -150,7 +150,8 @@ class ModUpdater(object):
       '1.0.3',
       '1.0.4',
       '1.0.5',
-      '2.0.0'
+      '2.0.0',
+      '2.0.1',
     ]
 
     logger.debug('Show release notes: %s' % lastVersion)

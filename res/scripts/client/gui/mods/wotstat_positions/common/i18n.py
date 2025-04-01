@@ -41,6 +41,11 @@ RU = {
   'settings:showInfoMessagesTooltip': '{HEADER}Отображение информационных сообщений{/HEADER}{BODY}Включите, чтобы отображать информационные сообщения над миникартой.{/BODY}',
   'settings:reportHotkey': 'Сообщить об ошибке',
   'settings:reportHotkeyTooltip': '{HEADER}Сообщить об ошибке{/HEADER}{BODY}Нажмите эту клавишу в бою, если видите некорректную позицию{/BODY}',
+  'settings:preferredServer': 'Сервер',
+  'settings:preferredServerTooltip': '{HEADER}Сервер{/HEADER}{BODY}Выберите сервер к которому будет обращаться мод для запроса позиций.\n\n• Авто – будет использован основной сервер, после двух ошибок, мод перейдёт на резервный и запомнит этот выбор на текущую сессию.\n• Основной – будет использоваться основной сервер\n• Резервный – будет использоваться резервный сервер{/BODY}',
+  'settings:auto': 'Авто',
+  'settings:main': 'Основной',
+  'settings:alternative': 'Резервный',
   'settings:reset': 'Сбросить',
   'settings:never': 'Никогда',
   'settings:onAlt': 'По нажатию на Alt',
@@ -62,10 +67,12 @@ RU = {
   'enterLicense.inputPlaceholder': 'Введите лицензионный ключ',
   'enterLicense.apply': 'Активировать',
   'enterLicense.serverError': 'Не удалось связаться с сервером активации, код ошибки: %s',
+  'request.switchToAlternativeServer': 'Не удалось связаться с основным сервером, переключение на резервный до окончания игровой сессии',
   'greeting.serverError.title': 'Мод «Позиции от WotStat»',
   'greeting.serverError.message': 'Не удалось связаться с сервером, код ошибки: %s\n\nПопробуйте позже или обратитесь в службу поддержки в Discord: <a href=\'event:POSITION_WOTSTAT_EVENT_OPEN_URL:https://discord.gg/7K8W9JE6xU\'>@WotStat</a> или на электронную почту: support@wotstat.info',
   'releaseNotes:1.0.1': '• Адаптация для версии %s\n• Адаптация для режима %s\n• Исправлены незначительные ошибки' % (highlight('Lesta 1.27'), highlight('Натиск')),
   'releaseNotes:2.0.0': '<b>ВЕРСИЯ 2.0</b>\n\nГлобальное обновление, настоятельно рекомендуется %s с полным списком изменений.\n• Огневые рубежи\n• Направления для стрельбы\n• Тепловые карты\n• Новый алгоритм определения позиций' % (openurl('ознакомиться', 'https://positions.wotstat.info/whats-new-2')),
+  'releaseNotes:2.0.1': '• Добавлена поддержка резервного сервера позиций. Он будет выбираться автоматически в случае недоступности основного. Принудительно переключить сервер можно в настройках мода',
 }
 
 EN = {
@@ -107,6 +114,11 @@ EN = {
   'settings:medium': 'Moderate',
   'settings:large': 'Many',
   'settings:unlimited': 'Unlimited',
+  'settings:preferredServer': 'Preferred server',
+  'settings:preferredServerTooltip': '{HEADER}Preferred server{/HEADER}{BODY}Select the server to which the mod will connect to request positions.\n\n• Auto – the main server will be used, after two errors, the mod will switch to the backup server and remember this choice for the current session.\n• Main – the main server will be used\n• Backup – the backup server will be used{/BODY}',
+  'settings:auto': 'Auto',
+  'settings:main': 'Main',
+  'settings:alternative': 'Backup',
   'battleMessage:showMinimapMarkers': 'Displaying positions',
   'battleMessage:showIdealMarker': 'Displaying the best marker',
   'battleMessage:reportSended': 'Report sent',
@@ -119,10 +131,12 @@ EN = {
   'enterLicense.inputPlaceholder': 'Enter the license key',
   'enterLicense.apply': 'Activate',
   'enterLicense.serverError': 'Failed to connect the activation server, error code: %s',
+  'request.switchToAlternativeServer': 'Failed to connect to the main server, switching to the backup server until the end of the game session',
   'greeting.serverError.title': 'Mod \'Positions by WotStat\'',
   'greeting.serverError.message': 'Failed to connect the server, error code: %s\n\nTry again later or contact support in Discord: <a href=\'event:POSITION_WOTSTAT_EVENT_OPEN_URL:https://discord.gg/7K8W9JE6xU\'>@WotStat</a> or by email: support@wotstat.info',
   'releaseNotes:1.0.1': '• Adaptation for version %s\n• Adaptation for mode %s\n• Minor bugs fixed' % (highlight('Lesta 1.27'), highlight('Onslaught')),
   'releaseNotes:2.0.0': '<b>VERSION 2.0</b>\n\nGlobal update, it is strongly recommended read the %s.\n• Firing positions\n• Shooting directions\n• Heatmaps\n• Position detection algorithm' % (openurl('full list of changes', 'https://positions.wotstat.info/whats-new-2')),
+  'releaseNotes:2.0.1': '• Added support for the backup positions server. It will be selected automatically if the main one is unavailable. You can force switch the server in the mod settings',
 }
 
 class I18n(Singleton):

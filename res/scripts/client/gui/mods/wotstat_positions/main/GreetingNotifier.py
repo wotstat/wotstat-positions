@@ -11,6 +11,7 @@ from ..common.Logger import Logger
 from ..common.Notifier import Notifier
 from ..common.ExceptionHandling import SendExceptionEvent, withExceptionHandling
 from ..common.i18n import t
+from ..common.Api import Api
 from ..constants import POSITION_WOTSTAT_EVENT_ENTER_LICENSE, POSITION_WOTSTAT_EVENT_RESET_LICENSE
 from .LicenseManager import LicenseManager, LicenseType # noqa: F401
 
@@ -26,12 +27,12 @@ class GreetingNotifier():
   onGameOpen = SendExceptionEvent()
   onFirstGameOpen = SendExceptionEvent()
 
-  def __init__(self, serverUrl, licenseManager):
-    # type: (str, LicenseManager) -> None
+  def __init__(self, api, licenseManager):
+    # type: (Api, LicenseManager) -> None
 
     self.__waitForHangar = False
     self.__isFirstHangarLoad = True
-    self.__serverUrl = serverUrl
+    self.__api = api
     self.__licenseManager = licenseManager
 
     wotHookEvents.onLoggedOn += self.__onLoggedOn
@@ -95,17 +96,16 @@ class GreetingNotifier():
         logger.error('Message text is not found in response: %s' % parsed)
   
   @withExceptionHandling()
-  def __getQueryPostfix(self):
-    query = {
+  def __getRequestParams(self):
+    # type: () -> dict
+    return {
       'name': BigWorld.player().name,
       'id': BigWorld.player().databaseID,
       'language': LANGUAGE,
       'lastVisible': PlayerPrefs.get(LAST_VISIBLE_GREETING_PLAYER_PREFS_KEY),
       'licenseType': self.__licenseManager.getLicenseType(),
       'license': self.__licenseManager.getLicense()
-    }
-    
-    return '&'.join(['%s=%s' % (k, v) for k, v in query.items() if v is not None])      
+    }    
 
   # При первом открытии игры
   def __firstGameOpenGreeting(self):
@@ -117,8 +117,7 @@ class GreetingNotifier():
   def __gameOpenGreeting(self):
     logger.debug('Requesting greeting message')
     self.onGameOpen()
-    url = '/api/v1/greeting?' + self.__getQueryPostfix()
-    BigWorld.fetchURL(self.__serverUrl + url, self.__messageResponse, method='GET')
+    self.__api.greeting(self.__getRequestParams(), self.__messageResponse)
 
   # При каждом выходе в ангар 
   def __hangarOpenGreeting(self):
@@ -133,7 +132,5 @@ class GreetingNotifier():
     elif licenseType != LicenseType.NONE:
       self.__licenseManager.resetLicense()
       notifier.showNotification(t('hangarMessage:licenseReset'), SystemMessages.SM_TYPE.Information)
-      
-      url = '/api/v1/afterReset?' + self.__getQueryPostfix()
-      BigWorld.fetchURL(self.__serverUrl + url, self.__messageResponse, method='GET')
+      self.__api.afterReset(self.__getRequestParams(), self.__messageResponse)
         

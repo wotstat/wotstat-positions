@@ -20,6 +20,7 @@ from .WotHookEvents import wotHookEvents
 from .ArenaInfoProvider import ArenaInfoProvider
 from .MinimapOverlay import MinimapOverlay, OverlayVisibilityMode
 from ..constants import ServerCommands as Commands
+from ..common.Api import Api
 from . import IPositionDrawer, IPositionRequester, PositionPoint, LicenseManager, Heatmap, Spots  # noqa: F401
 from EyeDisplayProcessor import EyeDisplayProcessor
 
@@ -29,18 +30,16 @@ settings = Settings.instance()
 ARENA_TAGS = dict([(v, k) for k, v in ARENA_BONUS_TYPE.__dict__.iteritems() if isinstance(v, int)])
 LANGUAGE = getClientLanguage()
 
-JSON_HEADERS = {'Content-Type': 'application/json'}
-
 class PositionRequester(IPositionRequester):
 
   onCommand = SendExceptionEvent()
 
-  def __init__(self, serverUrl, drawer, licenseManager):
-    # type: (str, IPositionDrawer, LicenseManager.LicenseManager) -> None
+  def __init__(self, api, drawer, licenseManager):
+    # type: (Api, IPositionDrawer, LicenseManager.LicenseManager) -> None
 
     self.__drawer = drawer
     self.__eyeDisplayProcessor = EyeDisplayProcessor(self.__drawer)
-    self.__serverUrl = serverUrl
+    self.__api = api
     self.__lastRequestTime = 0
     self.__getDrawerReadyRetryCount = 0
 
@@ -147,7 +146,7 @@ class PositionRequester(IPositionRequester):
         logger.error('Report response status is not 200: %s' % data.responseCode)
         return
 
-    BigWorld.fetchURL(self.__serverUrl + '/report', onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(report))
+    self.__api.report(report, onResponse)
 
     showPlayerMessage(t('battleMessage:reportSended'), BATTLE_MESSAGES_CONSTS.COLOR_GOLD)
 
@@ -267,7 +266,7 @@ class PositionRequester(IPositionRequester):
 
     logger.info('Requesting positions: %s; for tank: %s, arena: %s, mode: %s' % (params['id'], params['tank'], params['arena'], params['mode']))
     self.__isLoading = True
-    BigWorld.fetchURL(self.__serverUrl + '/api/v2/positions', self.__onResponse, headers=JSON_HEADERS, method='POST', postData=json.dumps(params))
+    self.__api.requestPositions(params, self.__onResponse)
 
   @withExceptionHandling()
   def __onResponse(self, data):

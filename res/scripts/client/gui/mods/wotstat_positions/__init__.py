@@ -4,10 +4,11 @@ from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
 from .common.ModUpdater import ModUpdater
-from .common.Settings import Settings, SettingsKeys
+from .common.Settings import Settings, SettingsKeys, PreferredServerVariants
 from .common.HotKeys import HotKeys
 from .common.PlayerPrefs import PlayerPrefs
 from .common.ExceptionHandling import withExceptionHandling
+from .common.Api import Api, PreferredServerVariant
 from .main.LifecycleStarter import LifecycleStarter
 from .main.PositionRequester import PositionRequester, Commands
 from .main.MarkerDrawer import MarkerDrawer
@@ -38,7 +39,7 @@ class WotstatPositions(object):
 
     version = self.config.get("version")
     logger.info("Config loaded. Version: %s" % version)
-  
+
     logger.setup([
       SimpleLoggerBackend(prefix="[MOD_WOTSTAT_POS]", minLevel="INFO" if not DEBUG_MODE else "DEBUG"),
       ServerLoggerBackend(url=self.config.get('lokiURL'),
@@ -59,28 +60,46 @@ class WotstatPositions(object):
     if lastModeVersion and lastModeVersion != version:
       updator.showReleaseNotes(lastModeVersion)
 
+    self.api = Api(serverUrl=self.config.get('baseURL'), alternativeServerUrl=self.config.get('alternativeBaseURL'))
+
     settings = Settings.instance()
     settings.onSettingsChanged += self.__onSettingsChanged
     settings.setup("wotstat_positions")
-
-    self.licenseManager = LicenseManager(self.config.get('baseURL'), LICENSE_FILE_PATH)
+    
+    self.licenseManager = LicenseManager(self.api, LICENSE_FILE_PATH)
 
     minimapOverlaySetup()
     enterLicenseWindowSetup()
 
     drawer = MarkerDrawer()
-    self.requester = PositionRequester(serverUrl=self.config.get('baseURL'), drawer=drawer, licenseManager=self.licenseManager)
+    self.requester = PositionRequester(api=self.api, drawer=drawer, licenseManager=self.licenseManager)
     self.requester.onCommand += self.__onServerCommand
 
     self.lifecycle = LifecycleStarter(self.requester, self.licenseManager)
     
-    greeting = GreetingNotifier(self.config.get('baseURL'), self.licenseManager)
+    greeting = GreetingNotifier(self.api, self.licenseManager)
     greeting.onGameOpen += self.__onGameOpen
 
     HotKeys.instance().onCommand += self.__onCommand
 
+  def __getPreferredServer(self, settingsVariant):
+    # type: (int) -> int
+    if settingsVariant == PreferredServerVariants.MAIN:
+      return PreferredServerVariant.DEFAULT
+    elif settingsVariant == PreferredServerVariants.ALTERNATIVE:
+      return PreferredServerVariant.ALTERNATIVE
+    elif settingsVariant == PreferredServerVariants.AUTO:
+      return PreferredServerVariant.AUTO
+    else:
+      return PreferredServerVariant.DEFAULT
+
   def __onSettingsChanged(self, settings):
+    # type: (dict) -> None
     hotkeys.updateCommandHotkey("sendReport", settings.get(SettingsKeys.REPORT_HOTKEY))
+
+    server = settings.get(SettingsKeys.PREFERRED_SERVER)
+    self.api.setPreferredServer(self.__getPreferredServer(server))
+
     logger.debug("Hotkeys commands updated")
 
   def __onCommand(self, command):

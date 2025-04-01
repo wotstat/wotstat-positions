@@ -10,6 +10,7 @@ from ..common.Logger import Logger
 from ..common.Notifier import Notifier
 from ..common.PlayerPrefs import PlayerPrefs
 from ..common.ExceptionHandling import withExceptionHandling
+from ..common.Api import Api
 from ..constants import PlayerPrefsKeys
 from .EnterLicenseWindow import show as showEnterLicenseWindow
 from ..common.i18n import t
@@ -33,14 +34,11 @@ class LicenseManager(object):
   __blocked = False
   __heartbeatTimer = None
 
-  def __init__(self, url, licenseFilePath):
-    self.__serverUrl = url  + '/api/v1/activation/check/'
-    self.__wsUrl = url.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
-    if LANGUAGE != 'ru':
-      self.__activatorPage = '%s/en/request-licence-key/?requestId=' % url
-    else:
-      self.__activatorPage = '%s/request-licence-key/?requestId=' % url
+  def __init__(self, api, licenseFilePath):
+    # type: (Api, str) -> None
 
+    self.__api = api
+    
     try:
       with open(licenseFilePath, "r") as f:
         self.__fileLicense = f.read()
@@ -48,9 +46,6 @@ class LicenseManager(object):
     except Exception as e:
       pass
 
-  def __targetWSUrl(self):
-    return '%s/%s?language=%s' % (self.__wsUrl, self.__uuid, LANGUAGE)
-  
   @withExceptionHandling()
   def requestInGameUI(self):
     showEnterLicenseWindow(self)
@@ -67,9 +62,9 @@ class LicenseManager(object):
       listener.onFailed += self.__onWebsocketFailed
       listener.onMessage += self.__onWebsocketMessage
 
-    BigWorld.wg_openWebBrowser(self.__activatorPage + self.__uuid)
+    BigWorld.wg_openWebBrowser(self.__api.getActivatorPageUrl(self.__uuid))
     if self.__client.status != websocket.ConnectionStatus.Opened and self.__client.status != websocket.ConnectionStatus.Opening:
-      self.__client.open(self.__targetWSUrl())
+      self.__client.open(self.__api.getWebSocketActivationUrl(self.__uuid))
 
   def getLicense(self):
     if self.__fileLicense: return self.__fileLicense
@@ -134,7 +129,8 @@ class LicenseManager(object):
           return
         
         status = parsed.get('status', None)
-        if status and (status is "FIRST_ACTIVATION" or status is "ALREADY_ACTIVATED" or status is "PATREON_ACTIVATED"):
+        logger.info('License activation status: %s' % str(status))
+        if status == "FIRST_ACTIVATION" or status == "ALREADY_ACTIVATED" or status == "PATREON_ACTIVATED":
           logger.info('License activated: %s' % LicenseManager.obfuscate(license))
           self.setLicense(license)
         
@@ -152,7 +148,7 @@ class LicenseManager(object):
     
     if not license: return
     
-    BigWorld.fetchURL(self.__serverUrl + '?key=%s&language=%s' % (license, LANGUAGE), onResponse)
+    self.__api.checkLicense(license, onResponse)
     logger.info('License entered: %s' % LicenseManager.obfuscate(license))
 
   @withExceptionHandling()
