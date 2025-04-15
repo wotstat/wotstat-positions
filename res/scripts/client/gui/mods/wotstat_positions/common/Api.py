@@ -93,6 +93,8 @@ class Api:
       callback(result)
 
     
+    logger.debug('Request [%s] to %s with headers: %s and postData: %s' % (method, str(self.getServerUrl() + url), str(headers), str(postData)))
+    
     BigWorld.fetchURL(self.getServerUrl() + url, onComplete, method=method, headers=headers, postData=postData, timeout=timeout)
   
   def report(self, data, callback):

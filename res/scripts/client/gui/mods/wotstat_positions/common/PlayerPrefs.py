@@ -39,8 +39,15 @@ class PlayerPrefs:
       return default
     
     try:
-      with open(file, "r") as f:
-        return f.read()
+      with open(file, "rb") as f:
+        rawData = f.read()
+        if '\x00' in rawData:
+          raise Exception("File contains null bytes")
+        
+        text = rawData.decode('utf-8')
+
+        _cache[key] = text
+        return text
     except Exception as e:
       logCurrentException("Failed to read preference file: %s" % key, level='ERROR')
       return default
@@ -51,8 +58,8 @@ class PlayerPrefs:
     
     try:
       _cache[key] = value
-      with open(os.path.join(PREFERENCES_PATH, key), "w") as f:
-        f.write(value)
+      with open(os.path.join(PREFERENCES_PATH, key), "wb") as f:
+        f.write(value.encode('utf-8'))
     except Exception as e:
       logCurrentException("Failed to write preference file: %s" % key)
 
