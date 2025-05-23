@@ -13,7 +13,7 @@ class Config:
     'lokiURL': 'https://loki.wotstat.info/loki/api/v1/push',
     'baseURL': 'https://positions.wotstat.info',
     'alternativeBaseURL': 'https://alternative.positions.wotstat.info',
-    'ghURL': 'https://api.github.com/repos/WOT-STAT/minimap-positions/releases/latest',
+    'ghURL': 'https://api.github.com/repos/wotstat/wotstat-positions/releases/latest',
   }
 
   def __init__(self, configPath, defaultParams=None):
