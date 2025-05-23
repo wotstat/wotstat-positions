@@ -59,3 +59,5 @@ zip -vr -0 -X $folder res -i "*.png"
 cd ../
 cp ./build/$folder $folder
 rm -rf ./build
+
+cp $folder "wotstat.positions_$v.mtmod"

@@ -23,24 +23,32 @@ jobs:
         run: |
           npm install -g @apache-royale/royale-js
 
-      - name: mod name
+      - name: Compute artifact names
+        shell: bash
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          MOD=wotstat.positions_$VERSION.wotmod
-          echo Version: $VERSION
-          echo Mod name: $MOD
+          BASE=wotstat.positions_$VERSION
+          WOTMOD=${BASE}.wotmod
+          MTMOD=${BASE}.mtmod
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "MOD=$MOD" >> $GITHUB_ENV
+          echo "WOTMOD=$WOTMOD" >> $GITHUB_ENV
+          echo "MTMOD=$MTMOD" >> $GITHUB_ENV
 
       - name: build
-        run: ./build.sh -v $VERSION && echo Mod name $MOD
+        run: ./build.sh -v $VERSION && echo Mod name $WOTMOD
         shell: bash
 
-      - name: Archive production artifacts
+      - name: Archive .wotmod artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.MOD }}
-          path: ${{ env.MOD }}
+          name: ${{ env.WOTMOD }}
+          path: ${{ env.WOTMOD }}
+
+      - name: Archive .mtmod artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.MTMOD }}
+          path: ${{ env.MTMOD }}
 
       - name: upload linux artifact
         uses: softprops/action-gh-release@v1
@@ -48,8 +56,10 @@ jobs:
         with:
           draft: false
           prerelease: true
-          files: ${{ env.MOD }}
           token: ${{ github.token }}
+          files: |
+            ${{ env.WOTMOD }}
+            ${{ env.MTMOD }}
           body: |
 
 
