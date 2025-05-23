@@ -127,7 +127,7 @@ class ModUpdater(object):
         logger.error('GH Update. Can not parse canary_upgrade in release notes')
 
       assets = parsed['assets']
-      asset = filter(lambda x: ('name' in x) and (x['name'] == 'wotstat.positions_' + latestVersion + modExtension), assets)
+      asset = filter(lambda x: ('name' in x) and (x['name'] == self.modName + '_' + latestVersion + modExtension), assets)
       if not len(asset) > 0:
         logger.error('GH Update. Can not find asset for version: %s' % latestVersion)
         return onCompleteInvoke(UpdateStatus.BAD_INFO)

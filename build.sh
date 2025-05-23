@@ -1,5 +1,6 @@
 #!/bin/bash
 
+MOD_NAME="wotstat.positions"
 d=false
 
 while getopts "v:d" flag
@@ -47,7 +48,7 @@ meta="${meta/\{\{VERSION\}\}/$v}"
 cd ./build
 echo "$meta" > ./meta.xml
 
-folder="wotstat.positions_$v.wotmod"
+folder=$MOD_NAME"_$v.wotmod"
 
 rm -rf $folder
 
@@ -60,4 +61,4 @@ cd ../
 cp ./build/$folder $folder
 rm -rf ./build
 
-cp $folder "wotstat.positions_$v.mtmod"
+cp $folder $MOD_NAME"_$v.mtmod"
