@@ -17,12 +17,15 @@ from .main.LicenseManager import LicenseManager
 from .main.MinimapOverlay import setup as minimapOverlaySetup
 from .main.EnterLicenseWindow import setup as enterLicenseWindowSetup
 from .constants import PlayerPrefsKeys
+from .common.CrossGameUtils import gamePublisher, PUBLISHER
 
 
 
 DEBUG_MODE = '{{DEBUG_MODE}}'
 CONFIG_PATH = './mods/configs/wotstat.positions/config.cfg'
 LICENSE_FILE_PATH = './mods/wotstat.positions.license'
+
+publisher = gamePublisher()
 
 
 logger = Logger.instance()
@@ -60,8 +63,25 @@ class WotstatPositions(object):
     if lastModeVersion and lastModeVersion != version:
       updator.showReleaseNotes(lastModeVersion)
 
-    self.api = Api(serverUrl=self.config.get('baseURL'), alternativeServerUrl=self.config.get('alternativeBaseURL'))
 
+    defaultServer = self.config.get('defaultServer')
+    alternativeServer = self.config.get('alternativeServer')
+    ruProxyServer = self.config.get('ruProxyServer')
+    ruProxyNoSslServer = self.config.get('ruProxyNoSslServer')
+    servers = {
+      PreferredServerVariant.DEFAULT: defaultServer,
+      PreferredServerVariant.ALTERNATIVE: alternativeServer,
+      PreferredServerVariant.PROXY_RU: ruProxyServer,
+      PreferredServerVariant.PROXY_RU_NO_SSL: ruProxyNoSslServer,
+      PreferredServerVariant.AUTO: defaultServer,  # AUTO uses the default server
+    }
+    
+    if publisher == PUBLISHER.LESTA:
+      self.api = Api(defaultServer, [alternativeServer, ruProxyServer, ruProxyNoSslServer], servers)
+    else:
+      self.api = Api(defaultServer, [alternativeServer], servers)
+
+    self.firstSettingChanged = True
     settings = Settings.instance()
     settings.onSettingsChanged += self.__onSettingsChanged
     settings.setup("wotstat_positions")
@@ -77,29 +97,43 @@ class WotstatPositions(object):
 
     self.lifecycle = LifecycleStarter(self.requester, self.licenseManager)
     
-    greeting = GreetingNotifier(self.api, self.licenseManager)
-    greeting.onGameOpen += self.__onGameOpen
+    self.greeting = GreetingNotifier(self.api, self.licenseManager)
+    self.greeting.onGameOpen += self.__onGameOpen
 
     HotKeys.instance().onCommand += self.__onCommand
 
   def __getPreferredServer(self, settingsVariant):
     # type: (int) -> int
-    if settingsVariant == PreferredServerVariants.MAIN:
-      return PreferredServerVariant.DEFAULT
-    elif settingsVariant == PreferredServerVariants.ALTERNATIVE:
-      return PreferredServerVariant.ALTERNATIVE
-    elif settingsVariant == PreferredServerVariants.AUTO:
+
+    mapping = {
+      PreferredServerVariants.AUTO: PreferredServerVariant.AUTO,
+      PreferredServerVariants.MAIN: PreferredServerVariant.DEFAULT,
+      PreferredServerVariants.ALTERNATIVE: PreferredServerVariant.ALTERNATIVE,
+      PreferredServerVariants.PROXY_RU: PreferredServerVariant.PROXY_RU,
+      PreferredServerVariants.PROXY_RU_NO_SSL: PreferredServerVariant.PROXY_RU_NO_SSL,
+    }
+    
+    if settingsVariant not in mapping:
+      logger.error("Unknown preferred server variant: %s, use AUTO" % settingsVariant)
       return PreferredServerVariant.AUTO
-    else:
-      return PreferredServerVariant.DEFAULT
+    
+    return mapping[settingsVariant]
+  
 
   def __onSettingsChanged(self, settings):
     # type: (dict) -> None
     hotkeys.updateCommandHotkey("sendReport", settings.get(SettingsKeys.REPORT_HOTKEY))
 
-    server = settings.get(SettingsKeys.PREFERRED_SERVER)
-    self.api.setPreferredServer(self.__getPreferredServer(server))
+    server = self.__getPreferredServer(settings.get(SettingsKeys.PREFERRED_SERVER))
 
+    if not self.firstSettingChanged:
+      if self.api.preferredServer != server:
+        BigWorld.callback(0.5, lambda: self.api.setPreferredServer(server, True))
+        BigWorld.callback(1, lambda: self.greeting.requestGreeting())
+    else:
+      self.firstSettingChanged = False
+      self.api.setPreferredServer(server)
+      
     logger.debug("Hotkeys commands updated")
 
   def __onCommand(self, command):

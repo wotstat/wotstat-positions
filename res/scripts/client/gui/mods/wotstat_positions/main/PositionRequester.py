@@ -229,8 +229,8 @@ class PositionRequester(IPositionRequester):
 
     vehicles = BigWorld.player().arena.vehicles
 
-    allyVehicles = [v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getAllyVehicles()] if v]
-    enemyVehicles =[v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getEnemyVehicles()] if v]
+    allyVehicles = [v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getAllyVehicles()] if (v and v['vehicleType'])]
+    enemyVehicles =[v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getEnemyVehicles()] if (v and v['vehicleType'])]
 
     params = {
       'id': self.__battleUUID,

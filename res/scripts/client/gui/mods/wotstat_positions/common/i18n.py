@@ -42,10 +42,12 @@ RU = {
   'settings:reportHotkey': 'Сообщить об ошибке',
   'settings:reportHotkeyTooltip': '{HEADER}Сообщить об ошибке{/HEADER}{BODY}Нажмите эту клавишу в бою, если видите некорректную позицию{/BODY}',
   'settings:preferredServer': 'Сервер',
-  'settings:preferredServerTooltip': '{HEADER}Сервер{/HEADER}{BODY}Выберите сервер к которому будет обращаться мод для запроса позиций.\n\n• Авто – будет использован основной сервер, после двух ошибок, мод перейдёт на резервный и запомнит этот выбор на текущую сессию.\n• Основной – будет использоваться основной сервер\n• Резервный – будет использоваться резервный сервер{/BODY}',
+  'settings:preferredServerTooltip': '{HEADER}Сервер{/HEADER}{BODY}Выберите сервер к которому будет обращаться мод для запроса позиций.\n\n• Авто – будет использован основной сервер, после двух ошибок, мод перейдёт на резервный и запомнит этот выбор на текущую сессию.\n• Основной – будет использоваться основной сервер\n• Резервный – будет использоваться резервный сервер\n• Резервный RU – будет использоваться резервный сервер на .ru домене\n• Резервный RU без SSL – будет использоваться резервный сервер на .ru домене по протоколу без шифрования (без SSL/TLS)\n\n<i>Резервные RU сервера нужны для пользователей из России, у которых РКН блокирует всё остальное</i>{/BODY}',
   'settings:auto': 'Авто',
   'settings:main': 'Основной',
   'settings:alternative': 'Резервный',
+  'settings:proxyRu': 'Резервный RU',
+  'settings:proxyRuNoSsl': 'Резервный RU (без SSL)',
   'settings:reset': 'Сбросить',
   'settings:never': 'Никогда',
   'settings:onAlt': 'По нажатию на Alt',
@@ -55,6 +57,8 @@ RU = {
   'settings:medium': 'Средне',
   'settings:large': 'Много',
   'settings:unlimited': 'Безлимитно',
+  'api.serverChanged': '\nСервер изменён на <b>%s</b>',
+  'api.serverChangedHeader': 'Мод «Позиции от WotStat»',
   'battleMessage:showMinimapMarkers': 'Отображение позиций',
   'battleMessage:showIdealMarker': 'Отображение наилучшего маркера',
   'battleMessage:reportSended': 'Жалоба отправлена',
@@ -73,6 +77,7 @@ RU = {
   'releaseNotes:1.0.1': '• Адаптация для версии %s\n• Адаптация для режима %s\n• Исправлены незначительные ошибки' % (highlight('Lesta 1.27'), highlight('Натиск')),
   'releaseNotes:2.0.0': '<b>ВЕРСИЯ 2.0</b>\n\nГлобальное обновление, настоятельно рекомендуется %s с полным списком изменений.\n• Огневые рубежи\n• Направления для стрельбы\n• Тепловые карты\n• Новый алгоритм определения позиций' % (openurl('ознакомиться', 'https://positions.wotstat.info/whats-new-2')),
   'releaseNotes:2.0.1': '• Добавлена поддержка резервного сервера позиций. Он будет выбираться автоматически в случае недоступности основного. Принудительно переключить сервер можно в настройках мода',
+  'releaseNotes:2.0.4': '• Добавлены два новых резервных сервера для игроков из России.\n• При ручном выборе сервера, теперь будет заново выводиться сообщение о лицензии.',
 }
 
 EN = {
@@ -114,11 +119,15 @@ EN = {
   'settings:medium': 'Moderate',
   'settings:large': 'Many',
   'settings:unlimited': 'Unlimited',
+  'api.serverChanged': '\nServer changed to <b>%s</b>',
+  'api.serverChangedHeader': 'Mod \'Positions by WotStat\'',
   'settings:preferredServer': 'Preferred server',
-  'settings:preferredServerTooltip': '{HEADER}Preferred server{/HEADER}{BODY}Select the server to which the mod will connect to request positions.\n\n• Auto – the main server will be used, after two errors, the mod will switch to the backup server and remember this choice for the current session.\n• Main – the main server will be used\n• Backup – the backup server will be used{/BODY}',
+  'settings:preferredServerTooltip': '{HEADER}Preferred server{/HEADER}{BODY}Select the server to which the mod will connect to request positions.\n\n• Auto – the main server will be used, after two errors, the mod will switch to the backup server and remember this choice for the current session.\n• Main – the main server will be used\n• Backup – the backup server will be used\n• RU Proxy - the backup server on .ru domain\n• RU Proxy (no SSL) the backup server on .ru domain without secure (no SSL/TLS)\n\n <i>RU Proxy Backup servers are needed for Russian users because some providers block all others on the internet.</i>{/BODY}',
   'settings:auto': 'Auto',
   'settings:main': 'Main',
   'settings:alternative': 'Backup',
+  'settings:proxyRu': 'RU Proxy',
+  'settings:proxyRuNoSsl': 'RU Proxy (no SSL)',
   'battleMessage:showMinimapMarkers': 'Displaying positions',
   'battleMessage:showIdealMarker': 'Displaying the best marker',
   'battleMessage:reportSended': 'Report sent',
@@ -137,6 +146,7 @@ EN = {
   'releaseNotes:1.0.1': '• Adaptation for version %s\n• Adaptation for mode %s\n• Minor bugs fixed' % (highlight('Lesta 1.27'), highlight('Onslaught')),
   'releaseNotes:2.0.0': '<b>VERSION 2.0</b>\n\nGlobal update, it is strongly recommended read the %s.\n• Firing positions\n• Shooting directions\n• Heatmaps\n• Position detection algorithm' % (openurl('full list of changes', 'https://positions.wotstat.info/whats-new-2')),
   'releaseNotes:2.0.1': '• Added support for the backup positions server. It will be selected automatically if the main one is unavailable. You can force switch the server in the mod settings',
+  'releaseNotes:2.0.4': '• Added two new backup servers for players from Russia.\n• When manually selecting a server, a license message will be displayed again.',
 }
 
 class I18n(Singleton):

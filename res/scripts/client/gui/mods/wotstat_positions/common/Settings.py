@@ -22,6 +22,8 @@ class PreferredServerVariants:
   AUTO = 0
   MAIN = 1
   ALTERNATIVE = 2
+  PROXY_RU = 3
+  PROXY_RU_NO_SSL = 4
 
 class HeatmapLimitVariants:
   SMALL = 0
@@ -31,7 +33,7 @@ class HeatmapLimitVariants:
 
 DropdownVariants = [t('settings:never'), t('settings:onAlt'), t('settings:always')]
 OverlayDropdownVariants = [t('settings:never'), t('settings:mouseOver'), t('settings:onAlt'), t('settings:always')]
-PreferredServerDropdownVariants = [t('settings:auto'), t('settings:main'), t('settings:alternative')]
+PreferredServerDropdownVariants = [t('settings:auto'), t('settings:main'), t('settings:alternative'), t('settings:proxyRu'), t('settings:proxyRuNoSsl')]
 HeatmapLimitDropdownVariants = [t('settings:small'), t('settings:medium'), t('settings:large'), t('settings:unlimited')]
 
 class SettingsKeys:

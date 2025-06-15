@@ -12,8 +12,12 @@ class Config:
   defaultParams = {
     'lokiURL': 'https://loki.wotstat.info/loki/api/v1/push',
     'baseURL': 'https://positions.wotstat.info',
-    'alternativeBaseURL': 'https://alternative.positions.wotstat.info',
     'ghURL': 'https://api.github.com/repos/wotstat/wotstat-positions/releases/latest',
+    
+    'defaultServer': 'https://positions.wotstat.info',
+    'alternativeServer': 'https://alternative.positions.wotstat.info',
+    'ruProxyServer': 'https://positions.wotstat-proxy.ru',
+    'ruProxyNoSslServer': 'http://positions.wotstat-proxy.ru',
   }
 
   def __init__(self, configPath, defaultParams=None):

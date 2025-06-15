@@ -95,6 +95,10 @@ class GreetingNotifier():
       else:
         logger.error('Message text is not found in response: %s' % parsed)
   
+  def requestGreeting(self):
+    logger.debug('Requesting greeting message')
+    self.__api.greeting(self.__getRequestParams(), self.__messageResponse)
+
   @withExceptionHandling()
   def __getRequestParams(self):
     # type: () -> dict
@@ -115,9 +119,8 @@ class GreetingNotifier():
 
   # При каждом перезаходе (например смена сервера)
   def __gameOpenGreeting(self):
-    logger.debug('Requesting greeting message')
     self.onGameOpen()
-    self.__api.greeting(self.__getRequestParams(), self.__messageResponse)
+    self.requestGreeting()
 
   # При каждом выходе в ангар 
   def __hangarOpenGreeting(self):
