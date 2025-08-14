@@ -36,6 +36,8 @@ BOOST_START = 120
 MIN_AREA_STEP = 10
 MAX_AREA_STEP = 40
 
+collideSegment = BigWorld.wg_collideSegment if hasattr(BigWorld, 'wg_collideSegment') else BigWorld.collideSegment
+
 class MarkerDrawer(IPositionDrawer):
   __minimap = None # type: MinimapComponent
   __markerManager = None # type: MarkersManager
@@ -380,5 +382,5 @@ class WorldMarker():
     x = position[0]
     z = position[1]
     spaceID = BigWorld.player().spaceID
-    collisionWithTerrain = BigWorld.wg_collideSegment(spaceID, Vector3(x, 1000.0, z), Vector3(x, -1000.0, z), 128)
+    collisionWithTerrain = collideSegment(spaceID, Vector3(x, 1000.0, z), Vector3(x, -1000.0, z), 128)
     return collisionWithTerrain.closestPoint if collisionWithTerrain is not None else (x, 0, z)

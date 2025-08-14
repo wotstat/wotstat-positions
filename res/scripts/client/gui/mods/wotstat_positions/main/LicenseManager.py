@@ -15,6 +15,7 @@ from ..constants import PlayerPrefsKeys
 from .EnterLicenseWindow import show as showEnterLicenseWindow
 from ..common.i18n import t
 
+openWebBrowser = BigWorld.wg_openWebBrowser if hasattr(BigWorld, 'wg_openWebBrowser') else BigWorld.openWebBrowser 
 LANGUAGE = getClientLanguage()
 
 logger = Logger.instance()
@@ -62,7 +63,7 @@ class LicenseManager(object):
       listener.onFailed += self.__onWebsocketFailed
       listener.onMessage += self.__onWebsocketMessage
 
-    BigWorld.wg_openWebBrowser(self.__api.getActivatorPageUrl(self.__uuid))
+    openWebBrowser(self.__api.getActivatorPageUrl(self.__uuid))
     if self.__client.status != websocket.ConnectionStatus.Opened and self.__client.status != websocket.ConnectionStatus.Opening:
       self.__client.open(self.__api.getWebSocketActivationUrl(self.__uuid))
 

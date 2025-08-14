@@ -9,6 +9,7 @@ from .Logger import Logger
 from .ExceptionHandling import withExceptionHandling, SendExceptionEvent
 from ..main.WotHookEvents import wotHookEvents
 
+openWebBrowser = BigWorld.wg_openWebBrowser if hasattr(BigWorld, 'wg_openWebBrowser') else BigWorld.openWebBrowser 
 logger = Logger.instance()
 
 POSITION_WOTSTAT_EVENT_PREFIX = 'POSITION_WOTSTAT_EVENT'
@@ -43,7 +44,7 @@ class Notifier(Singleton):
       if actionName.startswith(POSITION_WOTSTAT_EVENT_OPEN_URL):
         target = actionName.split(POSITION_WOTSTAT_EVENT_OPEN_URL)[1]
         logger.info('Opening personal wotstat for %s' % target)
-        BigWorld.wg_openWebBrowser(target)
+        openWebBrowser(target)
       elif actionName.startswith(POSITION_WOTSTAT_EVENT_PREFIX):
         self.onEvent(actionName)
         logger.info('Event %s' % actionName)
