@@ -65,8 +65,7 @@ RU = {
   'battleMessage:reportSendTimeLimit': 'Жалоба уже была отправлена',
   'hangarMessage:cannotResetFileLicense': 'Файловая лицензия не может быть сброшена. Пожалуйста, удалите файл лицензии вручную',
   'hangarMessage:licenseReset': 'Персональная лицензия сброшена',
-  'updateMessage:header': 'Новая версия «Позиции от WotStat»',
-  'updateMessage:releaseNotesPrefix': 'Версия мода <b>v{version}</b> успешно установлена.\n\nЧто нового:',
+  'updateMessage:header': 'Мод «Позиции от WotStat» успешно обновлён до версии {version}',
   'enterLicense.title': 'Активация лицензии «Позиции от WotStat»',
   'enterLicense.inputPlaceholder': 'Введите лицензионный ключ',
   'enterLicense.apply': 'Активировать',
@@ -78,6 +77,7 @@ RU = {
   'releaseNotes:2.0.0': '<b>ВЕРСИЯ 2.0</b>\n\nГлобальное обновление, настоятельно рекомендуется %s с полным списком изменений.\n• Огневые рубежи\n• Направления для стрельбы\n• Тепловые карты\n• Новый алгоритм определения позиций' % (openurl('ознакомиться', 'https://positions.wotstat.info/whats-new-2')),
   'releaseNotes:2.0.1': '• Добавлена поддержка резервного сервера позиций. Он будет выбираться автоматически в случае недоступности основного. Принудительно переключить сервер можно в настройках мода',
   'releaseNotes:2.0.4': '• Добавлены два новых резервных сервера для игроков из России.\n• При ручном выборе сервера, теперь будет заново выводиться сообщение о лицензии.',
+  'releaseNotes:2.0.5': '• Адаптация для версии %s\n• Улучшена система автообновления' % highlight('Lesta 1.37'),
 }
 
 EN = {
@@ -134,8 +134,7 @@ EN = {
   'battleMessage:reportSendTimeLimit': 'Report has already been sent',
   'hangarMessage:cannotResetFileLicense': 'File license cannot be reset. Please delete the license file manually',
   'hangarMessage:licenseReset': 'Personal license reset',
-  'updateMessage:header': 'New version \'Positions by WotStat\'',
-  'updateMessage:releaseNotesPrefix': 'Mod version <b>v{version}</b> installed.\n\nWhat\'s new:',
+  'updateMessage:header': 'The \'Positions by WotStat\' mod has been successfully updated to version {version}',
   'enterLicense.title': 'Activate Positions by WotStat',
   'enterLicense.inputPlaceholder': 'Enter the license key',
   'enterLicense.apply': 'Activate',
@@ -147,6 +146,7 @@ EN = {
   'releaseNotes:2.0.0': '<b>VERSION 2.0</b>\n\nGlobal update, it is strongly recommended read the %s.\n• Firing positions\n• Shooting directions\n• Heatmaps\n• Position detection algorithm' % (openurl('full list of changes', 'https://positions.wotstat.info/whats-new-2')),
   'releaseNotes:2.0.1': '• Added support for the backup positions server. It will be selected automatically if the main one is unavailable. You can force switch the server in the mod settings',
   'releaseNotes:2.0.4': '• Added two new backup servers for players from Russia.\n• When manually selecting a server, a license message will be displayed again.',
+  'releaseNotes:2.0.5': '• Adaptation for version %s.\n• Improved auto-update system.' % highlight('Lesta 1.37'),
 }
 
 class I18n(Singleton):

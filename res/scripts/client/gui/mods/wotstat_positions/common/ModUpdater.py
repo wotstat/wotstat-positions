@@ -227,6 +227,7 @@ class ModUpdater(object):
       '2.0.1',
       '2.0.3',
       '2.0.4',
+      '2.0.5',
     ]
 
     logger.debug('Show release notes: %s' % lastVersion)
@@ -243,7 +244,7 @@ class ModUpdater(object):
     if len(notes) == 0:
       return
     
-    releaseNotes = '\n' + t('updateMessage:releaseNotesPrefix').format(version=self.currentVersion)
+    releaseNotes = ''
     if len(notes) == 1:
       releaseNotes += '\n' + notes[0][0]
     else:
@@ -255,5 +256,5 @@ class ModUpdater(object):
       releaseNotes,
       SystemMessages.SM_TYPE.InformationHeader,
       'High',
-      { 'header': t('updateMessage:header'), }
+      { 'header': t('updateMessage:header').format(version=self.currentVersion), }
     )
