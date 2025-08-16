@@ -3,7 +3,7 @@ import BigWorld
 from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
-from .common.ModUpdater import ModUpdater
+from .common.ModUpdater import ModUpdater, UpdateStatus
 from .common.Settings import Settings, SettingsKeys, PreferredServerVariants
 from .common.HotKeys import HotKeys
 from .common.PlayerPrefs import PlayerPrefs
@@ -52,16 +52,27 @@ class WotstatPositions(object):
                           minLevel="INFO")
     ])
 
-    updator = ModUpdater(modName="wotstat.positions",
+    updater = ModUpdater(modName="wotstat.positions",
                          currentVersion=version,
                          ghUrl=self.config.get('ghURL'))
-    updator.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
+    
+    def onRuServerComplete(status):
+      logger.info("Ru server update status: %s" % status)
+      if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
+        updater.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
+
+    def onMainServerComplete(status):
+      logger.info("Main server update status: %s" % status)
+      if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
+        updater.updateToLatestVersion('https://ru.install.wotstat.info/api/mod/wotstat.positions/latest', onRuServerComplete)
+
+    updater.updateToLatestVersion('https://install.wotstat.info/api/mod/wotstat.positions/latest', onMainServerComplete)
 
 
     lastModeVersion = PlayerPrefs.get(PlayerPrefsKeys.LAST_VERSION)
     PlayerPrefs.set(PlayerPrefsKeys.LAST_VERSION, version)
     if lastModeVersion and lastModeVersion != version:
-      updator.showReleaseNotes(lastModeVersion)
+      updater.showReleaseNotes(lastModeVersion)
 
 
     defaultServer = self.config.get('defaultServer')
