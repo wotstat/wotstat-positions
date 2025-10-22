@@ -49,21 +49,24 @@ PreferredServersNames = {
 }
 
 try:
-  import openwg_network_todo_remove_this
+  import openwg_network
   P = PreferredServerVariants
   PreferredServerVariantsOrder = [
-    P.AUTO, 
-    P.MAIN, 
-    P.OPENWG_NETWORK, 
-    P.ALTERNATIVE, 
-    P.PROXY_RU, 
-    P.PROXY_RU_NO_SSL
+    P.AUTO,
+    P.OPENWG_NETWORK,
+    P.MAIN,
+    P.ALTERNATIVE,
+    P.PROXY_RU,
+    P.PROXY_RU_NO_SSL,
+    P.TELEPORT_MSK_1,
+    P.TELEPORT_NBG_1,
+    P.TELEPORT_SPB_1
   ]
 except ImportError:
   P = PreferredServerVariants
   PreferredServerVariantsOrder = [
-    P.AUTO, 
-    P.MAIN, 
+    P.AUTO,
+    P.MAIN,
     P.ALTERNATIVE,
     P.PROXY_RU,
     P.PROXY_RU_NO_SSL,

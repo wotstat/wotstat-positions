@@ -1,14 +1,14 @@
 import json
 import BigWorld
+import threading
+import functools
 from gui import SystemMessages
 from helpers import getClientLanguage
 from .Logger import Logger
 from .Notifier import Notifier
 from .i18n import t
 
-try: 
-  import openwg_network
-  openwg_network = None
+try: import openwg_network
 except ImportError: openwg_network = None
 
 JSON_HEADERS = {'Content-Type': 'application/json'}
@@ -50,6 +50,15 @@ serverToLocalizedNames = {
   PreferredServerVariant.TELEPORT_SPB_1: t('settings:teleportSpb1'),
   PreferredServerVariant.OPENWG_NETWORK: t('settings:openwg.network')
 }
+
+def openWGRequest(url, method='GET', headers=None, timeout=30.0, body=None, callback=None):
+  def worker():
+    resp = openwg_network.request(url, method, headers, timeout, body)
+    if callback: BigWorld.callback(0.0, functools.partial(callback, resp))
+
+  t = threading.Thread(target=worker)
+  t.daemon = True
+  t.start()
 
 class ServersStateMachine:
   def __init__(self, defaultServer, alternativeServers):
@@ -112,7 +121,6 @@ class ServersStateMachine:
     self.currentServerIndex = 0
     self.currentServerTotalErrorCount = 0
     self.currentServerRequestCount = 0
-  
 
 notifier = Notifier.instance()
 class Api:
@@ -150,30 +158,13 @@ class Api:
   
   def request(self, url, callback, method='GET', headers=None, postData=None, timeout=30):
     # type: (str, callable, str, dict, str, int) -> None
-    
-    def onComplete(result):
-      # type: (str) -> None
 
-      if self.preferredServer != PreferredServerVariant.AUTO:
-        self.servers.reset()
-        callback(result)
-        return
-      
-      if result.responseCode == 200:
-        self.servers.currentServerSuccess()
-        callback(result)
-        return
-      
-      if result.responseCode != 200:
-        if self.servers.currentServerErrorShouldRetry():
-          targetUrl = str(self.servers.getServerUrl() + url)
-          logger.error('Request error code: %s, retry: %s' % (result.responseCode, targetUrl))
-          BigWorld.fetchURL(targetUrl, onComplete, method=method, headers=headers, postData=postData, timeout=timeout)
-          return
+    shouldUseOpenWG = openwg_network and (
+      self.preferredServer == PreferredServerVariant.OPENWG_NETWORK or \
+      (self.preferredServer == PreferredServerVariant.AUTO and self.openWGNetworkRetryCount < 3)
+    )
 
-      callback(result)
-
-    if self.preferredServer == PreferredServerVariant.OPENWG_NETWORK and openwg_network:
+    if shouldUseOpenWG:
       targetUrl = str(self.defaultServerUrl + url)
       logger.debug('Request via openwg.network: %s' % targetUrl)
 
@@ -201,9 +192,31 @@ class Api:
 
         callback(result)
 
-      openwg_network.request_callback(targetUrl, method=method, headers=headers, body=postData, callback=onComplete, timeout=timeout)
+      openWGRequest(targetUrl, method=method, headers=headers, body=postData, callback=onComplete, timeout=timeout)
       return
     
+    def onComplete(result):
+      # type: (str) -> None
+
+      if self.preferredServer != PreferredServerVariant.AUTO:
+        self.servers.reset()
+        callback(result)
+        return
+      
+      if result.responseCode == 200:
+        self.servers.currentServerSuccess()
+        callback(result)
+        return
+      
+      if result.responseCode != 200:
+        if self.servers.currentServerErrorShouldRetry():
+          targetUrl = str(self.servers.getServerUrl() + url)
+          logger.error('Request error code: %s, retry: %s' % (result.responseCode, targetUrl))
+          BigWorld.fetchURL(targetUrl, onComplete, method=method, headers=headers, postData=postData, timeout=timeout)
+          return
+
+      callback(result)
+
     targetUrl = str(self.getServerUrl() + url)
     logger.debug('Request [%s] to %s with headers: %s and postData: %s' % (method, targetUrl, str(headers), str(postData)))
     BigWorld.fetchURL(targetUrl, onComplete, method=method, headers=headers, postData=postData, timeout=timeout)
