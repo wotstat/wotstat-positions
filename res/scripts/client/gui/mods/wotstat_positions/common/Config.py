@@ -18,6 +18,9 @@ class Config:
     'alternativeServer': 'https://alternative.positions.wotstat.info',
     'ruProxyServer': 'https://positions.wotstat-proxy.ru',
     'ruProxyNoSslServer': 'http://positions.wotstat-proxy.ru',
+    'teleportMsk1Server': 'https://teleport-msk-1.openwg.net/positions.wotstat.info',
+    'teleportNbg1Server': 'https://teleport-nbg-1.openwg.net/positions.wotstat.info',
+    'teleportSpb1Server': 'https://teleport-spb-1.openwg.net/positions.wotstat.info',
   }
 
   def __init__(self, configPath, defaultParams=None):

@@ -4,6 +4,8 @@ from Singleton import Singleton
 from constants import BigWorld
 from gui import SystemMessages
 from notification.actions_handlers import NotificationsActionsHandlers
+from helpers import dependency
+from skeletons.gui.shared.utils import IHangarSpace
 
 from .Logger import Logger
 from .ExceptionHandling import withExceptionHandling, SendExceptionEvent
@@ -30,12 +32,14 @@ class Notifier(Singleton):
   __isHangarLoaded = False
   __showTimer = None
   __notificationQueue = [] # type: List[Tuple[str, SystemMessages.SM_TYPE, str, any, any]]
+  __hangarSpace = dependency.descriptor(IHangarSpace) # type: IHangarSpace
   
   onEvent = SendExceptionEvent()
   
   def _singleton_init(self):
-    wotHookEvents.onHangarLoaded += self.__onHangarLoaded
-    wotHookEvents.onHangarDestroyed += self.__onHangarDestroyed
+
+    self.__hangarSpace.onSpaceCreate += self.__onHangarSpaceCreate
+    self.__hangarSpace.onSpaceDestroy += self.__onHangarSpaceDestroy
 
   @withExceptionHandling()
   def events_handleAction(self, oldHandler, obj, *a, **k):
@@ -76,7 +80,7 @@ class Notifier(Singleton):
                   message.get('messageData', None),
                   message.get('savedData', None))
 
-  def __onHangarLoaded(self):
+  def __onHangarSpaceCreate(self):
     if self.__isHangarLoaded: return
     self.__isHangarLoaded = True
 
@@ -88,7 +92,7 @@ class Notifier(Singleton):
 
     self.__showTimer = BigWorld.callback(1, showNotifications)
 
-  def __onHangarDestroyed(self, *a, **k):
+  def __onHangarSpaceDestroy(self, *a, **k):
     self.__isHangarLoaded = False
     if self.__showTimer:
       BigWorld.cancelCallback(self.__showTimer)

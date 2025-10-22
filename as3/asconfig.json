@@ -14,8 +14,7 @@
       "libs/lobby.swc",
       "libs/playerglobal.swc",
       "libs/flash.swc"
-    ],
-    "output": "bin/Main.swf"
+    ]
   },
   "mainClass": "Main"
 }

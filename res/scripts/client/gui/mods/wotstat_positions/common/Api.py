@@ -6,6 +6,11 @@ from .Logger import Logger
 from .Notifier import Notifier
 from .i18n import t
 
+try: 
+  import openwg_network
+  openwg_network = None
+except ImportError: openwg_network = None
+
 JSON_HEADERS = {'Content-Type': 'application/json'}
 LANGUAGE = getClientLanguage()
 
@@ -17,13 +22,21 @@ class PreferredServerVariant:
   AUTO = 2
   PROXY_RU = 3
   PROXY_RU_NO_SSL = 4
+  TELEPORT_MSK_1 = 5
+  TELEPORT_NBG_1 = 6
+  TELEPORT_SPB_1 = 7
+  OPENWG_NETWORK = 8
 
 PreferredServerVariantNames = {
   PreferredServerVariant.DEFAULT: 'default',
   PreferredServerVariant.ALTERNATIVE: 'alternative',
   PreferredServerVariant.AUTO: 'auto',
   PreferredServerVariant.PROXY_RU: 'proxy_ru',
-  PreferredServerVariant.PROXY_RU_NO_SSL: 'proxy_ru_no_ssl'
+  PreferredServerVariant.PROXY_RU_NO_SSL: 'proxy_ru_no_ssl',
+  PreferredServerVariant.TELEPORT_MSK_1: 'teleport_msk_1',
+  PreferredServerVariant.TELEPORT_NBG_1: 'teleport_nbg_1',
+  PreferredServerVariant.TELEPORT_SPB_1: 'teleport_spb_1',
+  PreferredServerVariant.OPENWG_NETWORK: 'openwg.network'
 }
 
 serverToLocalizedNames = {
@@ -31,7 +44,11 @@ serverToLocalizedNames = {
   PreferredServerVariant.DEFAULT: t('settings:main'),
   PreferredServerVariant.ALTERNATIVE: t('settings:alternative'),
   PreferredServerVariant.PROXY_RU: t('settings:proxyRu'),
-  PreferredServerVariant.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl')
+  PreferredServerVariant.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl'),
+  PreferredServerVariant.TELEPORT_MSK_1: t('settings:teleportMsk1'),
+  PreferredServerVariant.TELEPORT_NBG_1: t('settings:teleportNbg1'),
+  PreferredServerVariant.TELEPORT_SPB_1: t('settings:teleportSpb1'),
+  PreferredServerVariant.OPENWG_NETWORK: t('settings:openwg.network')
 }
 
 class ServersStateMachine:
@@ -105,6 +122,7 @@ class Api:
     self.servers = ServersStateMachine(defaultServer, alternativeServers)
     self.serverUrls = serverUrls
     self.defaultServerUrl = defaultServer
+    self.openWGNetworkRetryCount = 0
 
   def setPreferredServer(self, variant, notification=False):
     # type: (int, bool) -> None
@@ -127,7 +145,7 @@ class Api:
     if self.preferredServer in self.serverUrls:
       return self.serverUrls[self.preferredServer]
     
-    logger.warning('Unknown preferred server variant: %s, use default server' % PreferredServerVariantNames.get(self.preferredServer, self.preferredServer))
+    logger.warn('Unknown preferred server variant: %s, use default server' % PreferredServerVariantNames.get(self.preferredServer, self.preferredServer))
     return self.defaultServerUrl
   
   def request(self, url, callback, method='GET', headers=None, postData=None, timeout=30):
@@ -155,6 +173,36 @@ class Api:
 
       callback(result)
 
+    if self.preferredServer == PreferredServerVariant.OPENWG_NETWORK and openwg_network:
+      targetUrl = str(self.defaultServerUrl + url)
+      logger.debug('Request via openwg.network: %s' % targetUrl)
+
+      def onComplete(response):
+        status, headers, body = response
+
+        logger.debug('openwg.network response status: %s, headers: %s, body: %s' % (str(status), str(headers), str(body)))
+
+        result = type('Result', (object,), {})()
+        result.responseCode = status
+        result.headers = headers
+        result.body = body
+
+        if result.responseCode == 200:
+          self.openWGNetworkRetryCount = 0
+          callback(result)
+          return
+        
+        if result.responseCode != 200:
+          if self.openWGNetworkRetryCount < 3:
+            self.openWGNetworkRetryCount += 1
+            logger.error('openwg.network request error code: %s, retry: %s' % (result.responseCode, targetUrl))
+            openwg_network.request_callback(targetUrl, method=method, headers=headers, body=postData, callback=onComplete)
+            return
+
+        callback(result)
+
+      openwg_network.request_callback(targetUrl, method=method, headers=headers, body=postData, callback=onComplete, timeout=timeout)
+      return
     
     targetUrl = str(self.getServerUrl() + url)
     logger.debug('Request [%s] to %s with headers: %s and postData: %s' % (method, targetUrl, str(headers), str(postData)))
@@ -196,8 +244,12 @@ class Api:
 
   def getActivatorPageUrl(self, requestId):
     # type: (str) -> str
-    if LANGUAGE != 'ru': return self.getServerUrl() + '/en/request-licence-key/?requestId=' + requestId
-    else: return self.getServerUrl() + '/request-licence-key/?requestId=' + requestId
+
+    serverUrl = self.getServerUrl()
+    if 'openwg.net' in serverUrl: serverUrl = self.defaultServerUrl
+
+    if LANGUAGE != 'ru': return serverUrl + '/en/request-licence-key/?requestId=' + requestId
+    else: return serverUrl + '/request-licence-key/?requestId=' + requestId
 
   def getWebSocketActivationUrl(self, requestId):
     # type: (str) -> str

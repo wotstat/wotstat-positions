@@ -24,6 +24,10 @@ class PreferredServerVariants:
   ALTERNATIVE = 2
   PROXY_RU = 3
   PROXY_RU_NO_SSL = 4
+  TELEPORT_MSK_1 = 5
+  TELEPORT_NBG_1 = 6
+  TELEPORT_SPB_1 = 7
+  OPENWG_NETWORK = 8
 
 class HeatmapLimitVariants:
   SMALL = 0
@@ -31,10 +35,53 @@ class HeatmapLimitVariants:
   LARGE = 2
   UNLIMITED = 3
 
+
+PreferredServersNames = {
+  PreferredServerVariants.AUTO: t('settings:auto'),
+  PreferredServerVariants.MAIN: t('settings:main'),
+  PreferredServerVariants.ALTERNATIVE: t('settings:alternative'),
+  PreferredServerVariants.PROXY_RU: t('settings:proxyRu'),
+  PreferredServerVariants.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl'),
+  PreferredServerVariants.TELEPORT_MSK_1: t('settings:teleportMsk1'),
+  PreferredServerVariants.TELEPORT_NBG_1: t('settings:teleportNbg1'),
+  PreferredServerVariants.TELEPORT_SPB_1: t('settings:teleportSpb1'),
+  PreferredServerVariants.OPENWG_NETWORK: t('settings:openwg.network')
+}
+
+try:
+  import openwg_network_todo_remove_this
+  P = PreferredServerVariants
+  PreferredServerVariantsOrder = [
+    P.AUTO, 
+    P.MAIN, 
+    P.OPENWG_NETWORK, 
+    P.ALTERNATIVE, 
+    P.PROXY_RU, 
+    P.PROXY_RU_NO_SSL
+  ]
+except ImportError:
+  P = PreferredServerVariants
+  PreferredServerVariantsOrder = [
+    P.AUTO, 
+    P.MAIN, 
+    P.ALTERNATIVE,
+    P.PROXY_RU,
+    P.PROXY_RU_NO_SSL,
+    P.TELEPORT_MSK_1,
+    P.TELEPORT_NBG_1,
+    P.TELEPORT_SPB_1
+  ]
+
+
 DropdownVariants = [t('settings:never'), t('settings:onAlt'), t('settings:always')]
 OverlayDropdownVariants = [t('settings:never'), t('settings:mouseOver'), t('settings:onAlt'), t('settings:always')]
-PreferredServerDropdownVariants = [t('settings:auto'), t('settings:main'), t('settings:alternative'), t('settings:proxyRu'), t('settings:proxyRuNoSsl')]
 HeatmapLimitDropdownVariants = [t('settings:small'), t('settings:medium'), t('settings:large'), t('settings:unlimited')]
+PreferredServerDropdownVariants = map(lambda t: PreferredServersNames[t], PreferredServerVariantsOrder)
+
+def preferredServerIndexToVariant(index):
+  # type: (int) -> int
+  return PreferredServerVariantsOrder[index]
+  
 
 class SettingsKeys:
   ENABLED = 'enabled'

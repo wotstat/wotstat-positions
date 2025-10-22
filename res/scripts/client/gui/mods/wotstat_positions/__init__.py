@@ -4,7 +4,7 @@ from .common.ServerLoggerBackend import ServerLoggerBackend
 from .common.Logger import Logger, SimpleLoggerBackend
 from .common.Config import Config
 from .common.ModUpdater import ModUpdater, UpdateStatus
-from .common.Settings import Settings, SettingsKeys, PreferredServerVariants
+from .common.Settings import Settings, SettingsKeys, PreferredServerVariants, preferredServerIndexToVariant
 from .common.HotKeys import HotKeys
 from .common.PlayerPrefs import PlayerPrefs
 from .common.ExceptionHandling import withExceptionHandling
@@ -79,18 +79,25 @@ class WotstatPositions(object):
     alternativeServer = self.config.get('alternativeServer')
     ruProxyServer = self.config.get('ruProxyServer')
     ruProxyNoSslServer = self.config.get('ruProxyNoSslServer')
+    teleportMsk1Server = self.config.get('teleportMsk1Server')
+    teleportNbg1Server = self.config.get('teleportNbg1Server')
+    teleportSpb1Server = self.config.get('teleportSpb1Server')
+
     servers = {
       PreferredServerVariant.DEFAULT: defaultServer,
       PreferredServerVariant.ALTERNATIVE: alternativeServer,
       PreferredServerVariant.PROXY_RU: ruProxyServer,
       PreferredServerVariant.PROXY_RU_NO_SSL: ruProxyNoSslServer,
       PreferredServerVariant.AUTO: defaultServer,  # AUTO uses the default server
+      PreferredServerVariant.TELEPORT_MSK_1: teleportMsk1Server,
+      PreferredServerVariant.TELEPORT_NBG_1: teleportNbg1Server,
+      PreferredServerVariant.TELEPORT_SPB_1: teleportSpb1Server,
     }
     
     if publisher == PUBLISHER.LESTA:
-      self.api = Api(defaultServer, [alternativeServer, ruProxyServer, ruProxyNoSslServer], servers)
+      self.api = Api(defaultServer, [alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyServer, ruProxyNoSslServer, teleportNbg1Server], servers)
     else:
-      self.api = Api(defaultServer, [alternativeServer], servers)
+      self.api = Api(defaultServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
 
     self.firstSettingChanged = True
     settings = Settings.instance()
@@ -113,7 +120,7 @@ class WotstatPositions(object):
 
     HotKeys.instance().onCommand += self.__onCommand
 
-  def __getPreferredServer(self, settingsVariant):
+  def __getPreferredServer(self, settingsVariantIndex):
     # type: (int) -> int
 
     mapping = {
@@ -122,7 +129,13 @@ class WotstatPositions(object):
       PreferredServerVariants.ALTERNATIVE: PreferredServerVariant.ALTERNATIVE,
       PreferredServerVariants.PROXY_RU: PreferredServerVariant.PROXY_RU,
       PreferredServerVariants.PROXY_RU_NO_SSL: PreferredServerVariant.PROXY_RU_NO_SSL,
+      PreferredServerVariants.TELEPORT_MSK_1: PreferredServerVariant.TELEPORT_MSK_1,
+      PreferredServerVariants.TELEPORT_NBG_1: PreferredServerVariant.TELEPORT_NBG_1,
+      PreferredServerVariants.TELEPORT_SPB_1: PreferredServerVariant.TELEPORT_SPB_1,
+      PreferredServerVariants.OPENWG_NETWORK: PreferredServerVariant.OPENWG_NETWORK
     }
+
+    settingsVariant = preferredServerIndexToVariant(settingsVariantIndex)
     
     if settingsVariant not in mapping:
       logger.error("Unknown preferred server variant: %s, use AUTO" % settingsVariant)

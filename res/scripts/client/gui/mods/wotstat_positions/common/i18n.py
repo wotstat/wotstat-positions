@@ -48,6 +48,10 @@ RU = {
   'settings:alternative': 'Резервный',
   'settings:proxyRu': 'Резервный RU',
   'settings:proxyRuNoSsl': 'Резервный RU (без SSL)',
+  'settings:teleportMsk1': 'Телепорт МСК-1',
+  'settings:teleportNbg1': 'Телепорт НБГ-1',
+  'settings:teleportSpb1': 'Телепорт СПБ-1',
+  'settings:openwg.network': 'OpenWG Network',
   'settings:reset': 'Сбросить',
   'settings:never': 'Никогда',
   'settings:onAlt': 'По нажатию на Alt',
@@ -78,6 +82,7 @@ RU = {
   'releaseNotes:2.0.1': '• Добавлена поддержка резервного сервера позиций. Он будет выбираться автоматически в случае недоступности основного. Принудительно переключить сервер можно в настройках мода',
   'releaseNotes:2.0.4': '• Добавлены два новых резервных сервера для игроков из России.\n• При ручном выборе сервера, теперь будет заново выводиться сообщение о лицензии.',
   'releaseNotes:2.0.5': '• Адаптация для версии %s\n• Улучшена система автообновления' % highlight('Lesta 1.37'),
+  'releaseNotes:2.0.6': '• Добавлена поддержка резервных серверов через OpenWG Teleport для игроков из России (можно настроить в настройках).',
 }
 
 EN = {
@@ -114,6 +119,7 @@ EN = {
   'settings:reset': 'Reset',
   'settings:never': 'Never',
   'settings:onAlt': 'On Alt press',
+  'settings:mouseOver': 'On mouse over',
   'settings:always': 'Always',
   'settings:small': 'Few',
   'settings:medium': 'Moderate',
@@ -128,6 +134,10 @@ EN = {
   'settings:alternative': 'Backup',
   'settings:proxyRu': 'RU Proxy',
   'settings:proxyRuNoSsl': 'RU Proxy (no SSL)',
+  'settings:teleportMsk1': 'Teleport MSK-1',
+  'settings:teleportNbg1': 'Teleport NBG-1',
+  'settings:teleportSpb1': 'Teleport SPB-1',
+  'settings:openwg.network': 'OpenWG Network',
   'battleMessage:showMinimapMarkers': 'Displaying positions',
   'battleMessage:showIdealMarker': 'Displaying the best marker',
   'battleMessage:reportSended': 'Report sent',
@@ -147,6 +157,7 @@ EN = {
   'releaseNotes:2.0.1': '• Added support for the backup positions server. It will be selected automatically if the main one is unavailable. You can force switch the server in the mod settings',
   'releaseNotes:2.0.4': '• Added two new backup servers for players from Russia.\n• When manually selecting a server, a license message will be displayed again.',
   'releaseNotes:2.0.5': '• Adaptation for version %s.\n• Improved auto-update system.' % highlight('Lesta 1.37'),
+  'releaseNotes:2.0.6': '• Added support for backup servers via OpenWG Teleport for players from Russia.',
 }
 
 class I18n(Singleton):
