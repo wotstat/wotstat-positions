@@ -56,10 +56,20 @@ class WotstatPositions(object):
                          currentVersion=version,
                          ghUrl=self.config.get('ghURL'))
     
+    def onTeleportSpbComplete(status):
+      logger.info("Teleport spb server update status: %s" % status)
+      if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
+        updater.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
+
+    def onTeleportMskComplete(status):
+      logger.info("Teleport msk server update status: %s" % status)
+      if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
+        updater.updateToLatestVersion('https://teleport-spb-1.openwg.net/install.wotstat.info/api/mod/wotstat.positions/latest', onTeleportSpbComplete)
+
     def onRuServerComplete(status):
       logger.info("Ru server update status: %s" % status)
       if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
-        updater.updateToGitHubReleases(lambda status: logger.info("Update status: %s" % status))
+        updater.updateToLatestVersion('https://teleport-msk-1.openwg.net/install.wotstat.info/api/mod/wotstat.positions/latest', onTeleportMskComplete)
 
     def onMainServerComplete(status):
       logger.info("Main server update status: %s" % status)

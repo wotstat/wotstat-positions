@@ -85,6 +85,7 @@ class ModUpdater(object):
   
   @withExceptionHandling()
   def updateToLatestVersion(self, url, onComplete=None):
+    logger.debug('Checking latest version from: %s' % url)
 
     def onCompleteInvoke(status):
       if onComplete: onComplete(status)
