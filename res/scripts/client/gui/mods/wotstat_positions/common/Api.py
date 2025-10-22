@@ -160,7 +160,7 @@ class Api:
     # type: (str, callable, str, dict, str, int) -> None
 
     shouldUseOpenWG = openwg_network and (
-      self.preferredServer == PreferredServerVariant.OPENWG_NETWORK or \
+      (self.preferredServer == PreferredServerVariant.OPENWG_NETWORK) or \
       (self.preferredServer == PreferredServerVariant.AUTO and self.openWGNetworkRetryCount < 3)
     )
 
