@@ -17,7 +17,7 @@ LANGUAGE = getClientLanguage()
 logger = Logger.instance()
 
 class PreferredServerVariant:
-  DEFAULT = 0
+  MAIN = 0
   ALTERNATIVE = 1
   AUTO = 2
   PROXY_RU = 3
@@ -28,7 +28,7 @@ class PreferredServerVariant:
   OPENWG_NETWORK = 8
 
 PreferredServerVariantNames = {
-  PreferredServerVariant.DEFAULT: 'default',
+  PreferredServerVariant.MAIN: 'default',
   PreferredServerVariant.ALTERNATIVE: 'alternative',
   PreferredServerVariant.AUTO: 'auto',
   PreferredServerVariant.PROXY_RU: 'proxy_ru',
@@ -41,7 +41,7 @@ PreferredServerVariantNames = {
 
 serverToLocalizedNames = {
   PreferredServerVariant.AUTO: t('settings:auto'),
-  PreferredServerVariant.DEFAULT: t('settings:main'),
+  PreferredServerVariant.MAIN: t('settings:main'),
   PreferredServerVariant.ALTERNATIVE: t('settings:alternative'),
   PreferredServerVariant.PROXY_RU: t('settings:proxyRu'),
   PreferredServerVariant.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl'),
@@ -125,7 +125,7 @@ class ServersStateMachine:
 notifier = Notifier.instance()
 class Api:
 
-  def __init__(self, defaultServer, alternativeServers, serverUrls, preferredServer=PreferredServerVariant.DEFAULT):
+  def __init__(self, defaultServer, alternativeServers, serverUrls, preferredServer=PreferredServerVariant.MAIN):
     self.preferredServer = preferredServer
     self.servers = ServersStateMachine(defaultServer, alternativeServers)
     self.serverUrls = serverUrls

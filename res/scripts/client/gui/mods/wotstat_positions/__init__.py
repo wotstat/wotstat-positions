@@ -85,7 +85,7 @@ class WotstatPositions(object):
       updater.showReleaseNotes(lastModeVersion)
 
 
-    defaultServer = self.config.get('defaultServer')
+    mainServer = self.config.get('defaultServer')
     alternativeServer = self.config.get('alternativeServer')
     ruProxyServer = self.config.get('ruProxyServer')
     ruProxyNoSslServer = self.config.get('ruProxyNoSslServer')
@@ -94,20 +94,20 @@ class WotstatPositions(object):
     teleportSpb1Server = self.config.get('teleportSpb1Server')
 
     servers = {
-      PreferredServerVariant.DEFAULT: defaultServer,
+      PreferredServerVariant.MAIN: mainServer,
       PreferredServerVariant.ALTERNATIVE: alternativeServer,
       PreferredServerVariant.PROXY_RU: ruProxyServer,
       PreferredServerVariant.PROXY_RU_NO_SSL: ruProxyNoSslServer,
-      PreferredServerVariant.AUTO: defaultServer,  # AUTO uses the default server
+      PreferredServerVariant.AUTO: mainServer,  # AUTO uses the default server
       PreferredServerVariant.TELEPORT_MSK_1: teleportMsk1Server,
       PreferredServerVariant.TELEPORT_NBG_1: teleportNbg1Server,
       PreferredServerVariant.TELEPORT_SPB_1: teleportSpb1Server,
     }
     
     if publisher == PUBLISHER.LESTA:
-      self.api = Api(defaultServer, [alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyServer, ruProxyNoSslServer, teleportNbg1Server], servers)
+      self.api = Api(ruProxyServer, [mainServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyNoSslServer, teleportNbg1Server], servers)
     else:
-      self.api = Api(defaultServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
+      self.api = Api(mainServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
 
     self.firstSettingChanged = True
     settings = Settings.instance()
@@ -135,7 +135,7 @@ class WotstatPositions(object):
 
     mapping = {
       PreferredServerVariants.AUTO: PreferredServerVariant.AUTO,
-      PreferredServerVariants.MAIN: PreferredServerVariant.DEFAULT,
+      PreferredServerVariants.MAIN: PreferredServerVariant.MAIN,
       PreferredServerVariants.ALTERNATIVE: PreferredServerVariant.ALTERNATIVE,
       PreferredServerVariants.PROXY_RU: PreferredServerVariant.PROXY_RU,
       PreferredServerVariants.PROXY_RU_NO_SSL: PreferredServerVariant.PROXY_RU_NO_SSL,
