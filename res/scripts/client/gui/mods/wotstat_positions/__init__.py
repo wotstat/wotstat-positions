@@ -86,6 +86,7 @@ class WotstatPositions(object):
 
 
     mainServer = self.config.get('defaultServer')
+    openWgNetworkServer = mainServer
     alternativeServer = self.config.get('alternativeServer')
     ruProxyServer = self.config.get('ruProxyServer')
     ruProxyNoSslServer = self.config.get('ruProxyNoSslServer')
@@ -105,9 +106,9 @@ class WotstatPositions(object):
     }
     
     if publisher == PUBLISHER.LESTA:
-      self.api = Api(ruProxyServer, [mainServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyNoSslServer, teleportNbg1Server], servers)
+      self.api = Api(ruProxyServer, openWgNetworkServer, [mainServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyNoSslServer, teleportNbg1Server], servers)
     else:
-      self.api = Api(mainServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
+      self.api = Api(mainServer, openWgNetworkServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
 
     self.firstSettingChanged = True
     settings = Settings.instance()

@@ -53,8 +53,14 @@ serverToLocalizedNames = {
 
 def openWGRequest(url, method='GET', headers=None, timeout=30.0, body=None, callback=None):
   def worker():
-    resp = openwg_network.request(url, method, headers, timeout, body)
-    if callback: BigWorld.callback(0.0, functools.partial(callback, resp))
+    try:
+      resp = openwg_network.request(url, method, headers, timeout, body)
+      if callback: BigWorld.callback(0.0, functools.partial(callback, resp))
+    except Exception as e:
+      logger.error('openwg.network request exception: %s' % str(e))
+      if callback:
+        resp = (500, {}, None)
+        BigWorld.callback(0.0, functools.partial(callback, resp))
 
   t = threading.Thread(target=worker)
   t.daemon = True
@@ -86,8 +92,8 @@ class ServersStateMachine:
   def currentServerErrorShouldRetry(self):
     self.currentServerRequestCount += 1
 
-    isLastAlternative = self.currentServerIndex == len(self.servers) - 1
-    if self.currentServerTotalErrorCount > 30 and self.currentServerTotalErrorCount / self.currentServerRequestCount > 0.4 and not isLastAlternative:
+    isLastServer = self.currentServerIndex == len(self.servers) - 1
+    if self.currentServerTotalErrorCount > 30 and self.currentServerTotalErrorCount / self.currentServerRequestCount > 0.4 and not isLastServer:
       self.nextServer()
       logger.error('Error ratio (%s/%s) = %s > 0.4, switch to next server: %s' %  (
         self.currentServerTotalErrorCount, 
@@ -103,7 +109,7 @@ class ServersStateMachine:
     
     self.currentServerErrorCount = 0
 
-    if not isLastAlternative:
+    if not isLastServer:
       self.nextServer()
       logger.error('Request error 3 times, switch to next server: %s' % self.getServerUrl())
       return True
@@ -125,11 +131,12 @@ class ServersStateMachine:
 notifier = Notifier.instance()
 class Api:
 
-  def __init__(self, defaultServer, alternativeServers, serverUrls, preferredServer=PreferredServerVariant.MAIN):
+  def __init__(self, defaultServer, openWgNetworkServer, alternativeServers, serverUrls, preferredServer=PreferredServerVariant.MAIN):
     self.preferredServer = preferredServer
     self.servers = ServersStateMachine(defaultServer, alternativeServers)
     self.serverUrls = serverUrls
     self.defaultServerUrl = defaultServer
+    self.openWgNetworkServer = openWgNetworkServer
     self.openWGNetworkRetryCount = 0
 
   def setPreferredServer(self, variant, notification=False):
@@ -165,7 +172,7 @@ class Api:
     )
 
     if shouldUseOpenWG:
-      targetUrl = str(self.defaultServerUrl + url)
+      targetUrl = str(self.openWgNetworkServer + url)
       logger.debug('Request via openwg.network: %s' % targetUrl)
 
       def onComplete(response):
@@ -187,7 +194,7 @@ class Api:
           if self.openWGNetworkRetryCount < 3:
             self.openWGNetworkRetryCount += 1
             logger.error('openwg.network request error code: %s, retry: %s' % (result.responseCode, targetUrl))
-            openwg_network.request_callback(targetUrl, method=method, headers=headers, body=postData, callback=onComplete)
+            openWGRequest(targetUrl, method=method, headers=headers, body=postData, callback=onComplete, timeout=timeout)
             return
 
         callback(result)
