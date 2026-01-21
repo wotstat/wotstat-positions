@@ -106,7 +106,7 @@ class WotstatPositions(object):
     }
     
     if publisher == PUBLISHER.LESTA:
-      self.api = Api(ruProxyServer, openWgNetworkServer, [mainServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, ruProxyNoSslServer, teleportNbg1Server], servers)
+      self.api = Api(ruProxyServer, openWgNetworkServer, [ruProxyNoSslServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, mainServer, teleportNbg1Server], servers)
     else:
       self.api = Api(mainServer, openWgNetworkServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
 

@@ -230,11 +230,11 @@ class Api:
   
   def report(self, data, callback):
     # type: (dict, callable) -> None
-    self.request('/api/v1/report', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=5)
+    self.request('/api/v1/report', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=10)
 
   def requestPositions(self, data, callback):
     # type: (dict, callable) -> None
-    self.request('/api/v2/positions', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=5)
+    self.request('/api/v2/positions', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=10)
 
   def checkLicense(self, license, callback):
     # type: (str, callable) -> None

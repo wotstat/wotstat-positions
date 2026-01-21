@@ -84,6 +84,7 @@ RU = {
   'releaseNotes:2.0.5': '• Адаптация для версии %s\n• Улучшена система автообновления' % highlight('Lesta 1.37'),
   'releaseNotes:2.0.6': '• Добавлена поддержка резервных серверов через OpenWG Teleport для игроков из России (можно настроить в настройках).',
   'releaseNotes:2.0.7': '• В связи с участившимися блокировками от РКН, в качестве сервера по умолчанию на %s теперь используется %s. Вы всегда можете переключиться на основной или другие в настройках мода.' % (highlight('LESTA'), highlight('резервный RU сервер')),
+  'releaseNotes:2.0.9': '• Изменён порядок резервных серверов для "авто" режима.',
 }
 
 EN = {
@@ -159,6 +160,7 @@ EN = {
   'releaseNotes:2.0.4': '• Added two new backup servers for players from Russia.\n• When manually selecting a server, a license message will be displayed again.',
   'releaseNotes:2.0.5': '• Adaptation for version %s.\n• Improved auto-update system.' % highlight('Lesta 1.37'),
   'releaseNotes:2.0.6': '• Added support for backup servers via OpenWG Teleport for players from Russia.',
+  'releaseNotes:2.0.9': '• The order of backup servers for "auto" mode has been changed.',
 }
 
 class I18n(Singleton):
