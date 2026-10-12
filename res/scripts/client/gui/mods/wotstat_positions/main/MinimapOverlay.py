@@ -2,7 +2,7 @@ from math import sqrt
 from typing import Tuple
 import BigWorld
 from gui.Scaleform.framework.entities.View import View
-from gui.Scaleform.framework import g_entitiesFactories, ScopeTemplates, ViewSettings
+from gui.Scaleform.framework import ScopeTemplates, ViewSettings
 from gui.Scaleform.genConsts.BATTLE_VIEW_ALIASES import BATTLE_VIEW_ALIASES
 from frameworks.wulf import WindowLayer
 from gui.shared.personality import ServicesLocator
@@ -14,6 +14,7 @@ from Avatar import PlayerAvatar
 
 from ..common.Settings import Settings, SettingsKeys, HeatmapLimitVariants
 from ..common.Logger import Logger
+from ..common.CrossGameUtils import getEntitiesFactories
 from .utils import getPlayerVehicle
 from ..common.ExceptionHandling import withExceptionHandling
 from . import Spots, Heatmap
@@ -237,7 +238,7 @@ def setup():
     None,
     ScopeTemplates.GLOBAL_SCOPE,
   )
-  g_entitiesFactories.addSettings(mainViewSettings)
+  getEntitiesFactories().addSettings(mainViewSettings)
 
 
   def onAppInitialized(event):
