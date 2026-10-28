@@ -76,7 +76,15 @@ class WotstatPositions(object):
       if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
         updater.updateToLatestVersion('https://ru.install.wotstat.info/api/mod/wotstat.positions/latest', onRuServerComplete)
 
-    updater.updateToLatestVersion('https://install.wotstat.info/api/mod/wotstat.positions/latest', onMainServerComplete)
+    def onMtstatServerComplete(status):
+      logger.info("Mtstat server update status: %s" % status)
+      if status in (UpdateStatus.BAD_INFO, UpdateStatus.NOT_OK_RESPONSE):
+        updater.updateToLatestVersion('https://install.wotstat.info/api/mod/wotstat.positions/latest', onMainServerComplete)
+
+    if publisher == PUBLISHER.LESTA:
+      updater.updateToLatestVersion('https://install.mtstat.info/api/mod/wotstat.positions/latest', onMtstatServerComplete)
+    else:
+      updater.updateToLatestVersion('https://install.wotstat.info/api/mod/wotstat.positions/latest', onMainServerComplete)
 
 
     lastModeVersion = PlayerPrefs.get(PlayerPrefsKeys.LAST_VERSION)
@@ -88,6 +96,8 @@ class WotstatPositions(object):
     mainServer = self.config.get('defaultServer')
     openWgNetworkServer = mainServer
     alternativeServer = self.config.get('alternativeServer')
+    mtstatServer = self.config.get('mtstatServer')
+    ruWotstatServer = self.config.get('ruWotstatServer')
     ruProxyServer = self.config.get('ruProxyServer')
     ruProxyNoSslServer = self.config.get('ruProxyNoSslServer')
     teleportMsk1Server = self.config.get('teleportMsk1Server')
@@ -96,19 +106,35 @@ class WotstatPositions(object):
 
     servers = {
       PreferredServerVariant.MAIN: mainServer,
+      PreferredServerVariant.MAIN_RU: mtstatServer,
       PreferredServerVariant.ALTERNATIVE: alternativeServer,
       PreferredServerVariant.PROXY_RU: ruProxyServer,
       PreferredServerVariant.PROXY_RU_NO_SSL: ruProxyNoSslServer,
-      PreferredServerVariant.AUTO: mainServer,  # AUTO uses the default server
+      PreferredServerVariant.AUTO: mtstatServer if publisher == PUBLISHER.LESTA else mainServer,
       PreferredServerVariant.TELEPORT_MSK_1: teleportMsk1Server,
       PreferredServerVariant.TELEPORT_NBG_1: teleportNbg1Server,
       PreferredServerVariant.TELEPORT_SPB_1: teleportSpb1Server,
     }
     
     if publisher == PUBLISHER.LESTA:
-      self.api = Api(ruProxyServer, openWgNetworkServer, [ruProxyNoSslServer, alternativeServer, teleportSpb1Server, teleportMsk1Server, mainServer, teleportNbg1Server], servers)
+      self.api = Api(mtstatServer, openWgNetworkServer, [
+          ruProxyServer,
+          ruProxyNoSslServer,
+          ruWotstatServer,
+          alternativeServer,
+          teleportSpb1Server,
+          teleportMsk1Server,
+          mainServer,
+          teleportNbg1Server
+        ], servers)
     else:
-      self.api = Api(mainServer, openWgNetworkServer, [alternativeServer, teleportNbg1Server, teleportSpb1Server, teleportMsk1Server], servers)
+      self.api = Api(mainServer, openWgNetworkServer, [
+          alternativeServer,
+          mtstatServer,
+          teleportNbg1Server,
+          teleportSpb1Server,
+          teleportMsk1Server,
+        ], servers)
 
     self.firstSettingChanged = True
     settings = Settings.instance()
@@ -137,6 +163,7 @@ class WotstatPositions(object):
     mapping = {
       PreferredServerVariants.AUTO: PreferredServerVariant.AUTO,
       PreferredServerVariants.MAIN: PreferredServerVariant.MAIN,
+      PreferredServerVariants.MAIN_RU: PreferredServerVariant.MAIN_RU,
       PreferredServerVariants.ALTERNATIVE: PreferredServerVariant.ALTERNATIVE,
       PreferredServerVariants.PROXY_RU: PreferredServerVariant.PROXY_RU,
       PreferredServerVariants.PROXY_RU_NO_SSL: PreferredServerVariant.PROXY_RU_NO_SSL,

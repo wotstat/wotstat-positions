@@ -26,9 +26,11 @@ class PreferredServerVariant:
   TELEPORT_NBG_1 = 6
   TELEPORT_SPB_1 = 7
   OPENWG_NETWORK = 8
+  MAIN_RU = 9
 
 PreferredServerVariantNames = {
   PreferredServerVariant.MAIN: 'default',
+  PreferredServerVariant.MAIN_RU: 'main_ru',
   PreferredServerVariant.ALTERNATIVE: 'alternative',
   PreferredServerVariant.AUTO: 'auto',
   PreferredServerVariant.PROXY_RU: 'proxy_ru',
@@ -42,6 +44,7 @@ PreferredServerVariantNames = {
 serverToLocalizedNames = {
   PreferredServerVariant.AUTO: t('settings:auto'),
   PreferredServerVariant.MAIN: t('settings:main'),
+  PreferredServerVariant.MAIN_RU: t('settings:mainRu'),
   PreferredServerVariant.ALTERNATIVE: t('settings:alternative'),
   PreferredServerVariant.PROXY_RU: t('settings:proxyRu'),
   PreferredServerVariant.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl'),
@@ -166,9 +169,11 @@ class Api:
   def request(self, url, callback, method='GET', headers=None, postData=None, timeout=30):
     # type: (str, callable, str, dict, str, int) -> None
 
+    # AUTO uses OpenWG only for its configured upstream.
     shouldUseOpenWG = openwg_network and (
       (self.preferredServer == PreferredServerVariant.OPENWG_NETWORK) or \
-      (self.preferredServer == PreferredServerVariant.AUTO and self.openWGNetworkRetryCount < 3)
+      (self.preferredServer == PreferredServerVariant.AUTO and self.openWGNetworkRetryCount < 3
+       and self.getServerUrl() == self.openWgNetworkServer)
     )
 
     if shouldUseOpenWG:
@@ -275,4 +280,3 @@ class Api:
     # type: (str) -> str
     wsUrl = self.getServerUrl().replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v1/activation/wot'
     return '%s/%s?language=%s' % (wsUrl, requestId, LANGUAGE)
-  

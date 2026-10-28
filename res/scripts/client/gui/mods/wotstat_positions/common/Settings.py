@@ -4,6 +4,7 @@ from Singleton import Singleton
 from .ExceptionHandling import SendExceptionEvent
 from .Logger import Logger
 from .i18n import t
+from .CrossGameUtils import gamePublisher, PUBLISHER
 
 logger = Logger.instance()
 
@@ -28,6 +29,7 @@ class PreferredServerVariants:
   TELEPORT_NBG_1 = 6
   TELEPORT_SPB_1 = 7
   OPENWG_NETWORK = 8
+  MAIN_RU = 9
 
 class HeatmapLimitVariants:
   SMALL = 0
@@ -39,6 +41,7 @@ class HeatmapLimitVariants:
 PreferredServersNames = {
   PreferredServerVariants.AUTO: t('settings:auto'),
   PreferredServerVariants.MAIN: t('settings:main'),
+  PreferredServerVariants.MAIN_RU: t('settings:mainRu'),
   PreferredServerVariants.ALTERNATIVE: t('settings:alternative'),
   PreferredServerVariants.PROXY_RU: t('settings:proxyRu'),
   PreferredServerVariants.PROXY_RU_NO_SSL: t('settings:proxyRuNoSsl'),
@@ -74,6 +77,12 @@ except ImportError:
     P.TELEPORT_NBG_1,
     P.TELEPORT_SPB_1
   ]
+
+mainServerIndex = PreferredServerVariantsOrder.index(P.MAIN)
+PreferredServerVariantsOrder.insert(
+  mainServerIndex if gamePublisher() == PUBLISHER.LESTA else mainServerIndex + 1,
+  P.MAIN_RU
+)
 
 
 DropdownVariants = [t('settings:never'), t('settings:onAlt'), t('settings:always')]
@@ -176,6 +185,7 @@ class Settings(Singleton):
       SK = SettingsKeys
       template = {
         'modDisplayName': t('settings:modDisplayName'),
+        'preferredServerOrder': PreferredServerVariantsOrder[:],
         'enabled': True,
         'column1': [
           templates.createDropdown(t('settings:showIdealMarker'), SK.SHOW_IDEAL_MARKER, DropdownVariants, settings[SK.SHOW_IDEAL_MARKER], tooltip=t('settings:showIdealTooltip')),
@@ -210,6 +220,35 @@ class Settings(Singleton):
         self.settings = savedSettings
         g_modsSettingsApi.registerCallback(self.name, onModSettingsChanged, onButtonClicked)
       else:
+        self.__migrateSettings(g_modsSettingsApi, template)
         self.settings = g_modsSettingsApi.setModTemplate(self.name, template, onModSettingsChanged, onButtonClicked)
     except:
       logger.info('Settings: modsSettingsApi not found')
+
+  def __migrateSettings(self, api, template):
+    # Read with the stored template before the API resets settings for a changed template.
+    previousTemplate = getattr(api, 'state', {}).get('templates', {}).get(self.name)
+    previousSettings = api.getModSettings(self.name, previousTemplate)
+    if not previousSettings:
+      return
+
+    previousSettings = previousSettings.copy()
+    previousOrder = previousTemplate.get('preferredServerOrder')
+    if previousOrder is None:
+      P = PreferredServerVariants
+      previousOrder = [P.AUTO, P.MAIN, P.ALTERNATIVE, P.PROXY_RU, P.PROXY_RU_NO_SSL,
+                       P.TELEPORT_MSK_1, P.TELEPORT_NBG_1, P.TELEPORT_SPB_1]
+      for component in previousTemplate.get('column2', []):
+        if component.get('varName') == SettingsKeys.PREFERRED_SERVER and len(component.get('options', [])) == len(previousOrder) + 1:
+          previousOrder.insert(1, P.OPENWG_NETWORK)
+
+    index = previousSettings.get(SettingsKeys.PREFERRED_SERVER, 0)
+    variant = previousOrder[index] if isinstance(index, int) and 0 <= index < len(previousOrder) else PreferredServerVariants.AUTO
+    previousSettings[SettingsKeys.PREFERRED_SERVER] = PreferredServerVariantsOrder.index(variant) if variant in PreferredServerVariantsOrder else 0
+
+    template['enabled'] = previousSettings.get(SettingsKeys.ENABLED, template['enabled'])
+    for column in ('column1', 'column2'):
+      for component in template[column]:
+        key = component.get('varName')
+        if key in previousSettings and 'value' in component:
+          component['value'] = previousSettings[key]
