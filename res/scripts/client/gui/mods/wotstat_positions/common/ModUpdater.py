@@ -232,6 +232,8 @@ class ModUpdater(object):
       '2.0.6',
       '2.0.7',
       '2.0.9',
+      '2.1.1',
+      '2.1.2',
     ]
 
     logger.debug('Show release notes: %s' % lastVersion)

@@ -86,6 +86,7 @@ RU = {
   'releaseNotes:2.0.6': '• Добавлена поддержка резервных серверов через OpenWG Teleport для игроков из России (можно настроить в настройках).',
   'releaseNotes:2.0.7': '• В связи с участившимися блокировками от РКН, в качестве сервера по умолчанию на %s теперь используется %s. Вы всегда можете переключиться на основной или другие в настройках мода.' % (highlight('LESTA'), highlight('резервный RU сервер')),
   'releaseNotes:2.0.9': '• Изменён порядок резервных серверов для "авто" режима.',
+  'releaseNotes:2.1.2': '• Добавлен новый сервер «Основной RU» (mtstat.info). Для «Мира танков» он используется по умолчанию в режиме «Авто». Выбрать его вручную можно в настройках мода.',
 }
 
 EN = {
@@ -163,6 +164,7 @@ EN = {
   'releaseNotes:2.0.5': '• Adaptation for version %s.\n• Improved auto-update system.' % highlight('Lesta 1.37'),
   'releaseNotes:2.0.6': '• Added support for backup servers via OpenWG Teleport for players from Russia.',
   'releaseNotes:2.0.9': '• The order of backup servers for "auto" mode has been changed.',
+  'releaseNotes:2.1.2': '• Added the Main RU server (mtstat.info). It is used by default in Auto mode for Mir Tankov. You can also select it manually in the mod settings.',
 }
 
 class I18n(Singleton):
