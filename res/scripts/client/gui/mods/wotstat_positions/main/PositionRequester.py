@@ -232,8 +232,9 @@ class PositionRequester(IPositionRequester):
     allyVehicles = [v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getAllyVehicles()] if (v and v['vehicleType'])]
     enemyVehicles =[v['vehicleType'].type for v in [vehicles.get(v.vid, None) for v in arena.getEnemyVehicles()] if (v and v['vehicleType'])]
 
+    battleUUID = self.__battleUUID
     params = {
-      'id': self.__battleUUID,
+      'id': battleUUID,
       'token': self.__licenseManager.getToken(),
       'license': self.__licenseCache,
       'player': player.name,
@@ -266,7 +267,8 @@ class PositionRequester(IPositionRequester):
 
     logger.info('Requesting positions: %s; for tank: %s, arena: %s, mode: %s' % (params['id'], params['tank'], params['arena'], params['mode']))
     self.__isLoading = True
-    self.__api.requestPositions(params, self.__onResponse)
+    self.__api.requestPositions(params, self.__onResponse,
+                                isCurrent=lambda: self.__isEnable and self.__battleUUID == battleUUID)
 
   @withExceptionHandling()
   def __onResponse(self, data):

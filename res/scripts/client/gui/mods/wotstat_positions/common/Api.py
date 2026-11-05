@@ -166,8 +166,8 @@ class Api:
     logger.warn('Unknown preferred server variant: %s, use default server' % PreferredServerVariantNames.get(self.preferredServer, self.preferredServer))
     return self.defaultServerUrl
   
-  def request(self, url, callback, method='GET', headers=None, postData=None, timeout=30):
-    # type: (str, callable, str, dict, str, int) -> None
+  def request(self, url, callback, method='GET', headers=None, postData=None, timeout=30, isCurrent=None):
+    # type: (str, callable, str, dict, str, int, callable) -> None
 
     # AUTO uses OpenWG only for its configured upstream.
     shouldUseOpenWG = openwg_network and (
@@ -181,6 +181,9 @@ class Api:
       logger.debug('Request via openwg.network: %s' % targetUrl)
 
       def onComplete(response):
+        if isCurrent is not None and not isCurrent():
+          return
+
         status, headers, body = response
 
         logger.debug('openwg.network response status: %s, headers: %s, body: %s' % (str(status), str(headers), str(body)))
@@ -210,6 +213,9 @@ class Api:
     def onComplete(result):
       # type: (str) -> None
 
+      if isCurrent is not None and not isCurrent():
+        return
+
       if self.preferredServer != PreferredServerVariant.AUTO:
         self.servers.reset()
         callback(result)
@@ -237,9 +243,10 @@ class Api:
     # type: (dict, callable) -> None
     self.request('/api/v1/report', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=10)
 
-  def requestPositions(self, data, callback):
-    # type: (dict, callable) -> None
-    self.request('/api/v2/positions', callback, headers=JSON_HEADERS, method='POST', postData=json.dumps(data), timeout=10)
+  def requestPositions(self, data, callback, isCurrent=None):
+    # type: (dict, callable, callable) -> None
+    self.request('/api/v2/positions', callback, headers=JSON_HEADERS, method='POST',
+                 postData=json.dumps(data), timeout=10, isCurrent=isCurrent)
 
   def checkLicense(self, license, callback):
     # type: (str, callable) -> None
